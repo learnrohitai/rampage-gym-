@@ -1,0 +1,395 @@
+"use client";
+
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
+import {
+  BadgeCheck,
+  CheckCircle2,
+  Clock,
+  Download,
+  ExternalLink,
+  FileJson,
+  FileSpreadsheet,
+  Filter,
+  LogOut,
+  RefreshCw,
+  Search,
+  UserX,
+  Users,
+  XCircle,
+} from "lucide-react";
+import { toast } from "sonner";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { getCategory } from "@/lib/categories";
+import { SITE } from "@/lib/site";
+import { cn, formatDate } from "@/lib/utils";
+import type { Registration } from "@/lib/db";
+
+const STATUS_META: Record<string, { label: string; variant: "success" | "destructive" | "default" }> = {
+  confirmed: { label: "Confirmed", variant: "success" },
+  pending: { label: "Pending", variant: "default" },
+  rejected: { label: "Rejected", variant: "destructive" },
+};
+
+type StatusFilter = "all" | "pending" | "confirmed" | "rejected";
+
+export default function Dashboard({ onLogout }: { onLogout: () => void }) {
+  const router = useRouter();
+  const [regs, setRegs] = useState<Registration[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
+  const [catFilter, setCatFilter] = useState("all");
+  const [viewing, setViewing] = useState<Registration | null>(null);
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await fetch("/api/admin/registrations", { cache: "no-store" });
+      if (res.status === 401) {
+        onLogout();
+        return;
+      }
+      const data = await res.json();
+      setRegs(data.registrations ?? []);
+    } catch {
+      toast.error("Failed to load registrations");
+    } finally {
+      setLoading(false);
+    }
+  }, [onLogout]);
+
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  const filtered = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    return regs.filter((r) => {
+      if (statusFilter !== "all" && r.status !== statusFilter) return false;
+      if (catFilter !== "all" && r.category !== catFilter) return false;
+      if (!q) return true;
+      return [r.name, r.phone, r.email, r.regId, r.city, r.gym]
+        .join(" ")
+        .toLowerCase()
+        .includes(q);
+    });
+  }, [regs, search, statusFilter, catFilter]);
+
+  const stats = useMemo(() => {
+    const total = regs.length;
+    const confirmed = regs.filter((r) => r.status === "confirmed").length;
+    const pending = regs.filter((r) => r.status === "pending").length;
+    const rejected = regs.filter((r) => r.status === "rejected").length;
+    return { total, confirmed, pending, rejected };
+  }, [regs]);
+
+  const setStatus = async (id: string, status: string) => {
+    try {
+      const res = await fetch("/api/admin/registrations", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, status }),
+      });
+      if (!res.ok) throw new Error("Update failed");
+      setRegs((prev) =>
+        prev.map((r) => (r.id === id ? { ...r, status: status as Registration["status"] } : r))
+      );
+      toast.success(`Marked as ${status}`);
+    } catch {
+      toast.error("Could not update status");
+    }
+  };
+
+  const logout = async () => {
+    await fetch("/api/admin/login", { method: "DELETE" });
+    onLogout();
+  };
+
+  return (
+    <div className="container py-10">
+      {/* Header */}
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <h1 className="font-display text-4xl font-black tracking-wide">
+            ORGANIZER <span className="text-gradient-gold">DASHBOARD</span>
+          </h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {SITE.eventName} • {SITE.gym.name}
+          </p>
+        </div>
+        <div className="flex gap-2">
+          <Button variant="outline" size="sm" onClick={load}>
+            <RefreshCw className={cn(loading && "animate-spin")} /> Refresh
+          </Button>
+          <Button variant="outline" size="sm" onClick={logout}>
+            <LogOut /> Logout
+          </Button>
+        </div>
+      </div>
+
+      {/* Stats */}
+      <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {[
+          { label: "Total Registrations", value: stats.total, icon: Users, tint: "text-gold" },
+          { label: "Confirmed", value: stats.confirmed, icon: BadgeCheck, tint: "text-emerald-400" },
+          { label: "Pending Review", value: stats.pending, icon: Clock, tint: "text-amber-400" },
+          { label: "Rejected", value: stats.rejected, icon: UserX, tint: "text-red-400" },
+        ].map((s) => (
+          <div
+            key={s.label}
+            className="relative overflow-hidden rounded-2xl border border-white/10 bg-card p-5"
+          >
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+                  {s.label}
+                </p>
+                <p className={cn("mt-1 font-display text-4xl font-black", s.tint)}>
+                  {s.value}
+                </p>
+              </div>
+              <s.icon className="size-8 opacity-20" />
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Toolbar */}
+      <div className="mt-8 flex flex-wrap items-center gap-3">
+        <div className="relative min-w-[220px] flex-1">
+          <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            className="pl-9"
+            placeholder="Search name, phone, reg ID…"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </div>
+        <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as StatusFilter)}>
+          <SelectTrigger className="w-[170px]">
+            <span className="flex items-center gap-2 text-muted-foreground">
+              <Filter className="size-4" />
+              <SelectValue />
+            </span>
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Statuses</SelectItem>
+            <SelectItem value="pending">Pending</SelectItem>
+            <SelectItem value="confirmed">Confirmed</SelectItem>
+            <SelectItem value="rejected">Rejected</SelectItem>
+          </SelectContent>
+        </Select>
+        <Select value={catFilter} onValueChange={setCatFilter}>
+          <SelectTrigger className="w-[200px]">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Categories</SelectItem>
+            {["bodybuilding", "masters", "physique"].map((c) => (
+              <SelectItem key={c} value={c}>
+                {getCategory(c)?.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <div className="flex gap-2">
+          <Button variant="outline" size="sm" asChild>
+            <a href="/api/admin/registrations?format=csv" download>
+              <FileSpreadsheet /> CSV
+            </a>
+          </Button>
+          <Button variant="outline" size="sm" asChild>
+            <a href="/api/admin/registrations?format=json" download>
+              <FileJson /> JSON
+            </a>
+          </Button>
+        </div>
+      </div>
+
+      {/* Table */}
+      <div className="mt-6 overflow-hidden rounded-2xl border border-white/10 bg-card">
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-white/10 text-left text-xs uppercase tracking-widest text-muted-foreground">
+                <th className="px-4 py-4">Reg ID</th>
+                <th className="px-4 py-4">Athlete</th>
+                <th className="px-4 py-4">Category</th>
+                <th className="px-4 py-4 hidden md:table-cell">Contact</th>
+                <th className="px-4 py-4 hidden lg:table-cell">Payment</th>
+                <th className="px-4 py-4">Status</th>
+                <th className="px-4 py-4 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {loading && (
+                <tr>
+                  <td colSpan={7} className="px-4 py-16 text-center text-muted-foreground">
+                    <RefreshCw className="mx-auto size-6 animate-spin text-gold" />
+                  </td>
+                </tr>
+              )}
+              {!loading && filtered.length === 0 && (
+                <tr>
+                  <td colSpan={7} className="px-4 py-16 text-center text-muted-foreground">
+                    No registrations found.
+                  </td>
+                </tr>
+              )}
+              {!loading &&
+                filtered.map((r) => (
+                  <tr
+                    key={r.id}
+                    className="border-b border-white/5 transition-colors last:border-0 hover:bg-white/[0.03]"
+                  >
+                    <td className="px-4 py-4">
+                      <span className="font-mono text-xs font-bold text-gold">{r.regId}</span>
+                      <p className="mt-0.5 text-[11px] text-muted-foreground">
+                        {formatDate(r.createdAt)}
+                      </p>
+                    </td>
+                    <td className="px-4 py-4">
+                      <p className="font-semibold">{r.name}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {r.city} • {r.gym}
+                      </p>
+                    </td>
+                    <td className="px-4 py-4">
+                      <Badge variant="outline">{categoryLabel(r)}</Badge>
+                    </td>
+                    <td className="hidden px-4 py-4 md:table-cell">
+                      <p>{r.phone}</p>
+                      <p className="text-xs text-muted-foreground">{r.email}</p>
+                    </td>
+                    <td className="hidden px-4 py-4 lg:table-cell">
+                      <p className="font-mono text-xs">{r.paymentRef}</p>
+                      {r.receiptFile && (
+                        <button
+                          onClick={() => setViewing(r)}
+                          className="mt-1 inline-flex items-center gap-1 text-xs font-semibold text-gold hover:underline"
+                        >
+                          <ExternalLink className="size-3" /> View receipt
+                        </button>
+                      )}
+                    </td>
+                    <td className="px-4 py-4">
+                      <Badge variant={STATUS_META[r.status].variant}>
+                        {STATUS_META[r.status].label}
+                      </Badge>
+                    </td>
+                    <td className="px-4 py-4">
+                      <div className="flex justify-end gap-1.5">
+                        {r.status !== "confirmed" && (
+                          <Button
+                            size="icon"
+                            variant="outline"
+                            className="size-8 border-emerald-500/40 text-emerald-400 hover:bg-emerald-500/10"
+                            title="Confirm"
+                            onClick={() => setStatus(r.id, "confirmed")}
+                          >
+                            <CheckCircle2 className="size-4" />
+                          </Button>
+                        )}
+                        {r.status !== "rejected" && (
+                          <Button
+                            size="icon"
+                            variant="outline"
+                            className="size-8 border-red-500/40 text-red-400 hover:bg-red-500/10"
+                            title="Reject"
+                            onClick={() => setStatus(r.id, "rejected")}
+                          >
+                            <XCircle className="size-4" />
+                          </Button>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <p className="mt-4 flex items-center gap-2 text-xs text-muted-foreground">
+        <Download className="size-3.5" />
+        Downloads include all registrations with category details. Receipt files
+        are stored privately on the server.
+      </p>
+
+      {/* Receipt modal */}
+      {viewing && <ReceiptModal reg={viewing} onClose={() => setViewing(null)} />}
+    </div>
+  );
+}
+
+function categoryLabel(r: Registration) {
+  const cat = getCategory(r.category);
+  if (!cat) return r.category;
+  const m = r.categoryMeta || {};
+  if (cat.id === "bodybuilding") return `${cat.name} — ${m.weightClass ?? "-"}`;
+  if (cat.id === "masters") return `${cat.name} (${m.age ?? "-"} yrs)`;
+  if (cat.id === "physique") return `${cat.name} — ${m.heightClass ?? "-"}`;
+  return cat.name;
+}
+
+function ReceiptModal({ reg, onClose }: { reg: Registration; onClose: () => void }) {
+  const isPdf = reg.receiptFile?.endsWith(".pdf");
+  return (
+    <div
+      className="fixed inset-0 z-50 grid place-items-center bg-black/80 p-4 backdrop-blur-sm"
+      onClick={onClose}
+    >
+      <div
+        className="relative max-h-[90vh] w-full max-w-2xl overflow-hidden rounded-2xl border border-white/10 bg-card"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between border-b border-white/10 px-6 py-4">
+          <div>
+            <h3 className="font-display text-xl font-bold tracking-widest text-gold">
+              {reg.regId} — {reg.name.toUpperCase()}
+            </h3>
+            <p className="text-xs text-muted-foreground">
+              Ref: <span className="font-mono">{reg.paymentRef}</span> • {categoryLabel(reg)}
+            </p>
+          </div>
+          <Button variant="ghost" size="icon" onClick={onClose}>
+            <XCircle className="size-5" />
+          </Button>
+        </div>
+        <div className="max-h-[65vh] overflow-auto p-6">
+          {isPdf ? (
+            <iframe
+              src={`/api/admin/receipt?file=${reg.receiptFile}`}
+              className="h-[60vh] w-full rounded-lg"
+              title="Receipt PDF"
+            />
+          ) : (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={`/api/admin/receipt?file=${reg.receiptFile}`}
+              alt="Payment receipt"
+              className="mx-auto max-h-[60vh] rounded-lg object-contain"
+            />
+          )}
+        </div>
+        <div className="flex justify-end gap-2 border-t border-white/10 px-6 py-4">
+          <a href={`/api/admin/receipt?file=${reg.receiptFile}`} target="_blank" rel="noreferrer">
+            <Button variant="outline" size="sm">
+              <ExternalLink /> Open Original
+            </Button>
+          </a>
+        </div>
+      </div>
+    </div>
+  );
+}

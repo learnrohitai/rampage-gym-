@@ -1,0 +1,123 @@
+export const SITE = {
+  eventName: "MR. INDIA 2026",
+  eventTagline: "The Ultimate Battle For The Iron Crown",
+  gym: {
+    name: "Rampage Gym",
+    tagline: "Forge Your Legacy",
+  },
+  organizedBy: "Rampage Gym",
+  eventDate: "15 February 2026",
+  venue: "Rampage Gym Arena",
+  city: "India",
+  contactPhone: "+91 98765 43210",
+  contactEmail: "info@rampagegym.in",
+  instagram: "https://instagram.com/rampagegym",
+  registrationDeadline: "10 February 2026",
+  entryFee: 1500,
+  upiId: "rampagegym@upi",
+  payeeName: "Rampage Gym",
+  // Put your real QR code image at /public/payment-qr.png
+  qrImage: "/payment-qr.png",
+};
+
+export const PRIZES = [
+  {
+    place: "1st",
+    title: "Champion",
+    reward: "₹51,000 + Trophy + Supplement Hamper",
+    accent: "from-amber-300 via-yellow-500 to-amber-700",
+    icon: "trophy",
+  },
+  {
+    place: "2nd",
+    title: "Runner Up",
+    reward: "₹21,000 + Trophy + Supplement Hamper",
+    accent: "from-slate-200 via-slate-400 to-slate-600",
+    icon: "medal",
+  },
+  {
+    place: "3rd",
+    title: "2nd Runner Up",
+    reward: "₹11,000 + Trophy",
+    accent: "from-orange-300 via-orange-500 to-amber-800",
+    icon: "award",
+  },
+];
+
+export const SCHEDULE = [
+  {
+    date: "10 Feb 2026",
+    title: "Registration Closes",
+    desc: "Last date to submit your entry online with payment.",
+  },
+  {
+    date: "14 Feb 2026",
+    title: "Check-in & Weigh-in",
+    desc: "Report at venue with ID proof. Height & weight verification.",
+  },
+  {
+    date: "15 Feb 2026 • 9 AM",
+    title: "Prelims — All Categories",
+    desc: "Physique rounds & mandatory poses for every division.",
+  },
+  {
+    date: "15 Feb 2026 • 6 PM",
+    title: "Grand Finals",
+    desc: "Top athletes battle on the main stage under the lights.",
+  },
+];
+
+export const SPONSORS = [
+  "Muscle Fuel",
+  "IronCore Supplements",
+  "Titan Gear",
+  "Pulse Nutrition",
+  "Apex Sports",
+  "Hydra+ Water",
+  "Flex Apparel",
+  "Beast Mode Café",
+  "PowerLift Equipment",
+  "Oxygen Gym Wear",
+];
+
+export const FAQS = [
+  {
+    q: "Who can participate in Mr. India 2026?",
+    a: "Any Indian citizen aged 18 or above with a valid government ID. Athletes above 35 years may also enter the Masters Bodybuilding division.",
+  },
+  {
+    q: "Can I participate in more than one category?",
+    a: "Yes! You can register for multiple categories. Complete a separate registration for each — you get 50% off on the second entry.",
+  },
+  {
+    q: "What documents do I need at check-in?",
+    a: "Carry a government photo ID (Aadhaar / PAN / Driving License), your payment reference / screenshot, and your registration confirmation.",
+  },
+  {
+    q: "How will I know my registration is confirmed?",
+    a: "After paying via the QR code, submit the payment reference number (UTR). The Rampage Gym team verifies it in the dashboard and your status changes to Confirmed.",
+  },
+  {
+    q: "What are the judging criteria?",
+    a: "Muscle mass, symmetry, conditioning, posing presentation and stage confidence — judged by certified IFBB-style judges.",
+  },
+  {
+    q: "Is there a doping test?",
+    a: "Yes, random doping tests may be conducted. Participants must sign a fair-play declaration at check-in.",
+  },
+  {
+    q: "Can I get a refund if I can't attend?",
+    a: "Entry fees are non-refundable, but you may transfer your entry to another athlete until 5 days before the event.",
+  },
+];
+
+export const RULES = [
+  "Valid government photo ID mandatory at weigh-in.",
+  "Entry fee is non-refundable once paid.",
+  "Posing trunks must be plain, solid color (no logos) for bodybuilding.",
+  "Board shorts for Men's Physique; barefoot or as instructed.",
+  "Report 90 minutes before your category is called.",
+  "Judges' decision is final in all rounds.",
+  "Any misconduct on stage leads to immediate disqualification.",
+  "Tanning oil / paint allowed, must be applied backstage only.",
+];
