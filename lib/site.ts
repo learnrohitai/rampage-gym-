@@ -6,9 +6,9 @@ export const SITE = {
     tagline: "Forge Your Legacy",
   },
   organizedBy: "Rampage Gym",
-  eventDate: "10 October 2026",
+  eventDate: "18 October 2026",
   // ISO date used by the hero countdown (YYYY-MM-DD)
-  eventDateISO: "2026-10-10T00:00:00+05:30",
+  eventDateISO: "2026-10-18T00:00:00+05:30",
   venue: "Rampage Gym Arena",
   city: "India",
   contactPhone: "+91 98765 43210",
@@ -56,22 +56,22 @@ export const SCHEDULE = [
     desc: "Entries open — lock your spot before your weight class fills up.",
   },
   {
-    date: "9 Oct 2026",
-    title: "Check-in & Weigh-in",
-    desc: "Report at venue with ID proof. Height & weight verification.",
-  },
-  {
     date: "10 Oct 2026",
     title: "Registration Closes",
     desc: "Last date to submit your entry online with payment.",
   },
   {
-    date: "10 Oct 2026 • 9 AM",
+    date: "17 Oct 2026",
+    title: "Check-in & Weigh-in",
+    desc: "Report at venue with ID proof. Height & weight verification.",
+  },
+  {
+    date: "18 Oct 2026 • 9 AM",
     title: "Prelims — All Categories",
     desc: "Physique rounds & mandatory poses for every division.",
   },
   {
-    date: "10 Oct 2026 • 6 PM",
+    date: "18 Oct 2026 • 6 PM",
     title: "Grand Finals",
     desc: "Top athletes battle on the main stage under the lights.",
   },
