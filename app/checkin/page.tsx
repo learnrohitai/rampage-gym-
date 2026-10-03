@@ -24,6 +24,7 @@ export default function CheckInPage() {
   const [data, setData] = useState<CheckInData | null>(null);
   const [loading, setLoading] = useState(false);
   const [regId, setRegId] = useState("");
+  const [phone, setPhone] = useState("");
   const [role, setRole] = useState<"admin" | "candidate">("candidate");
   const [confirmed, setConfirmed] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -55,6 +56,35 @@ export default function CheckInPage() {
     }
   };
 
+  const lookupPass = async () => {
+    const q = regId.trim();
+    const p = phone.trim();
+    if (!q || !p) {
+      toast.error("Enter your registration ID and mobile number");
+      return;
+    }
+    setLoading(true);
+    try {
+      const res = await fetch(
+        `/api/pass?regId=${encodeURIComponent(q)}&phone=${encodeURIComponent(p)}`,
+        { cache: "no-store" }
+      );
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || "Not found");
+      }
+      const body = await res.json();
+      setData(body.registration);
+      setConfirmed(false);
+      toast.success("Pass found");
+    } catch {
+      setData(null);
+      toast.error("Invalid ID or mobile number");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const copyRef = async () => {
     if (!data) return;
     await navigator.clipboard.writeText(data.paymentRef);
@@ -81,7 +111,9 @@ export default function CheckInPage() {
 
   const handleDownload = async () => {
     if (!data?.receiptFile) return;
-    const url = `/api/admin/qrcode?regId=${encodeURIComponent(data.regId)}`;
+    const url = `/api/pass/receipt?regId=${encodeURIComponent(
+      data.regId
+    )}&phone=${encodeURIComponent(phone.trim())}`;
     const link = document.createElement("a");
     link.href = url;
     link.download = `qr-pass-${data.regId}.png`;
@@ -207,23 +239,33 @@ export default function CheckInPage() {
       ) : (        <div className="mt-8 rounded-2xl border border-white/10 bg-card p-6">
           {!data ? (
             <div>
-              <div className="flex items-center justify-between gap-3">
+              <div className="flex items-end gap-3">
                 <div className="flex-1">
-                  <Label>Enter your Registration ID</Label>
+                  <Label>Registration ID</Label>
                   <Input
                     value={regId}
                     onChange={(e) => setRegId(e.target.value)}
                     placeholder="e.g. MI26-1234"
-                    onKeyDown={(e) => e.key === "Enter" && lookup()}
+                    onKeyDown={(e) => e.key === "Enter" && lookupPass()}
                   />
                 </div>
-                <Button onClick={lookup}>
+                <div className="flex-1">
+                  <Label>Registered Mobile Number</Label>
+                  <Input
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    placeholder="10-digit mobile"
+                    inputMode="numeric"
+                    onKeyDown={(e) => e.key === "Enter" && lookupPass()}
+                  />
+                </div>
+                <Button onClick={lookupPass} className="h-10">
                   <QrCode className="size-4" /> Search
                 </Button>
               </div>
               <p className="mt-4 text-center text-sm text-muted-foreground">
-                Enter the registration ID from your confirmation to view and
-                download your QR pass.
+                Enter your registration ID and the mobile number you registered
+                with to view and download your QR pass.
               </p>
             </div>
           ) : (
@@ -268,6 +310,7 @@ export default function CheckInPage() {
                   className="mt-3"
                   onClick={() => {
                     setRegId("");
+                    setPhone("");
                     setData(null);
                     setConfirmed(false);
                   }}
