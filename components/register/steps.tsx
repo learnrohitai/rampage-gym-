@@ -34,7 +34,7 @@ export function StepCategory({
       exit={{ opacity: 0, x: 24 }}
       transition={{ duration: 0.35 }}
     >
-      <h2 className="font-display text-3xl font-black tracking-wide">
+      <h2 className="font-display text-4xl font-black tracking-wide sm:text-5xl">
         STEP 1 — <span className="text-gradient-gold">CHOOSE CATEGORY</span>
       </h2>
       <p className="mt-2 text-sm text-muted-foreground">
@@ -105,7 +105,7 @@ export function StepPayment({ onNext }: { onNext: () => void }) {
       exit={{ opacity: 0, x: 24 }}
       transition={{ duration: 0.35 }}
     >
-      <h2 className="font-display text-3xl font-black tracking-wide">
+      <h2 className="font-display text-4xl font-black tracking-wide sm:text-5xl">
         STEP 2 — <span className="text-gradient-gold">PAY ENTRY FEE</span>
       </h2>
       <p className="mt-2 text-sm text-muted-foreground">

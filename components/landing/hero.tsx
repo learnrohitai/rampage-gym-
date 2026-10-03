@@ -2,9 +2,9 @@
 
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { ArrowRight, CalendarDays, MapPin, Users } from "lucide-react";
-import Marquee from "@/components/magicui/marquee";
+import { ArrowRight, CalendarDays, MapPin, Trophy, Users } from "lucide-react";
 import { AnimatedShinyText } from "@/components/magicui/shiny-text";
+import Countdown from "@/components/landing/countdown";
 import { Button } from "@/components/ui/button";
 import { SITE } from "@/lib/site";
 
@@ -35,7 +35,7 @@ export default function Hero() {
             <span className="relative inline-flex size-2 rounded-full bg-gold" />
           </span>
           <AnimatedShinyText className="text-sm font-semibold">
-            Registrations Open — {SITE.registrationDeadline}
+            Registration Opens {SITE.registrationOpens} — Closes {SITE.registrationDeadline}
           </AnimatedShinyText>
         </motion.div>
 
@@ -43,22 +43,24 @@ export default function Hero() {
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, delay: 0.1 }}
-          className="font-display text-6xl font-black leading-[0.95] tracking-wide sm:text-7xl md:text-8xl lg:text-9xl"
+          className="font-display text-7xl font-black leading-[0.92] tracking-wide drop-shadow-[0_4px_30px_rgba(245,185,66,0.25)] sm:text-8xl md:text-9xl lg:text-[8rem]"
         >
-          <span className="text-gradient-gold">MR. INDIA</span>
+          <span className="text-gradient-gold drop-shadow-[0_0_40px_rgba(245,185,66,0.35)]">
+            MR. INDIA
+          </span>
           <br />
-          <span className="text-foreground/90">2026</span>
+          <span className="text-foreground">2026</span>
         </motion.h1>
 
         <motion.p
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, delay: 0.2 }}
-          className="mt-5 max-w-2xl text-base text-muted-foreground sm:text-lg"
+          className="mt-6 max-w-2xl text-base font-medium text-muted-foreground sm:text-lg"
         >
           {SITE.gym.name} presents the ultimate bodybuilding championship —
-          {" "}<span className="text-gold font-semibold">3 divisions</span>,
-          {" "}<span className="text-gold font-semibold">7 weight classes</span>,
+          {" "}<span className="font-bold text-gold">3 divisions</span>,
+          {" "}<span className="font-bold text-gold">7 weight classes</span>,
           one iron crown. Bring your best physique to the stage.
         </motion.p>
 
@@ -68,13 +70,13 @@ export default function Hero() {
           transition={{ duration: 0.7, delay: 0.3 }}
           className="mt-8 flex flex-col items-center gap-3 sm:flex-row"
         >
-          <Button asChild variant="gold" size="lg" className="group">
+          <Button asChild variant="gold" size="lg" className="group h-14 px-10 text-lg font-black uppercase tracking-widest">
             <Link href="/register">
               Claim Your Spot
               <ArrowRight className="transition-transform group-hover:translate-x-1" />
             </Link>
           </Button>
-          <Button asChild variant="outline" size="lg">
+          <Button asChild variant="outline" size="lg" className="h-14 px-8 font-bold uppercase tracking-widest">
             <Link href="/#categories">View Categories</Link>
           </Button>
         </motion.div>
@@ -85,41 +87,28 @@ export default function Hero() {
           transition={{ duration: 0.8, delay: 0.5 }}
           className="mt-10 flex flex-wrap items-center justify-center gap-x-8 gap-y-3 text-sm text-muted-foreground"
         >
-          <span className="inline-flex items-center gap-2">
+          <span className="inline-flex items-center gap-2 font-semibold">
             <CalendarDays className="size-4 text-gold" /> {SITE.eventDate}
           </span>
-          <span className="inline-flex items-center gap-2">
+          <span className="inline-flex items-center gap-2 font-semibold">
             <MapPin className="size-4 text-gold" /> {SITE.venue}, {SITE.city}
           </span>
-          <span className="inline-flex items-center gap-2">
-            <Users className="size-4 text-gold" /> Limited entries per class
+          <span className="inline-flex items-center gap-2 font-semibold">
+            <Users className="size-4" /> Limited entries per class
+          </span>
+          <span className="inline-flex items-center gap-2 font-semibold">
+            <Trophy className="size-4 text-gold" /> ₹1,00,000+ prize pool
           </span>
         </motion.div>
 
-        {/* Scrolling ticker */}
+        {/* Registration countdown */}
         <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.7 }}
-          className="mask-fade-x mt-14 w-full max-w-4xl"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.65 }}
+          className="mt-14 w-full max-w-4xl"
         >
-          <Marquee pauseOnHover className="py-1 [--duration:22s]">
-            {[
-              "BODYBUILDING • 7 WEIGHT CLASSES",
-              "MASTERS 35+ • SINGLE DIVISION",
-              "MEN'S PHYSIQUE • 2 HEIGHT CLASSES",
-              "₹1,00,000+ PRIZE POOL",
-              "LIVE DJ • PRO STAGE LIGHTS",
-              "CERTIFIED JUDGES",
-            ].map((t) => (
-              <span
-                key={t}
-                className="mx-4 font-display text-lg tracking-widest text-gold/80"
-              >
-                {t}
-              </span>
-            ))}
-          </Marquee>
+          <Countdown />
         </motion.div>
       </div>
     </section>

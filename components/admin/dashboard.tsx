@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
+import type { Registration } from "@/lib/db";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -32,7 +33,7 @@ import {
 import { getCategory } from "@/lib/categories";
 import { SITE } from "@/lib/site";
 import { cn, formatDate } from "@/lib/utils";
-import type { Registration } from "@/lib/db";
+
 
 const STATUS_META: Record<string, { label: string; variant: "success" | "destructive" | "default" }> = {
   confirmed: { label: "Confirmed", variant: "success" },
@@ -50,6 +51,7 @@ export default function Dashboard({ onLogout }: { onLogout: () => void }) {
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [catFilter, setCatFilter] = useState("all");
   const [viewing, setViewing] = useState<Registration | null>(null);
+
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -107,6 +109,23 @@ export default function Dashboard({ onLogout }: { onLogout: () => void }) {
       toast.success(`Marked as ${status}`);
     } catch {
       toast.error("Could not update status");
+    }
+  };
+
+  const setPaymentStatus = async (id: string, paymentStatus: Registration["paymentStatus"]) => {
+    try {
+      const res = await fetch("/api/admin/registrations", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, paymentStatus }),
+      });
+      if (!res.ok) throw new Error("Update failed");
+      setRegs((prev) =>
+        prev.map((r) => (r.id === id ? { ...r, paymentStatus } : r))
+      );
+      toast.success(`Payment ${paymentStatus === "verified" ? "verified" : paymentStatus === "rejected" ? "rejected" : "unverified"}`);
+    } catch {
+      toast.error("Could not update payment status");
     }
   };
 
@@ -283,9 +302,29 @@ export default function Dashboard({ onLogout }: { onLogout: () => void }) {
                       )}
                     </td>
                     <td className="px-4 py-4">
-                      <Badge variant={STATUS_META[r.status].variant}>
-                        {STATUS_META[r.status].label}
-                      </Badge>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <Badge variant="outline" className="font-mono text-xs">
+                          {r.paymentStatus === "verified" ? "Payment Verified" : r.paymentStatus === "unverified" ? "Unverified" : "Rejected"}
+                        </Badge>
+                        <Button
+                          size="sm"
+                          variant={r.paymentStatus === "unverified" ? "default" : "outline"}
+                          onClick={() => setPaymentStatus(r.id, "verified")}
+                          disabled={r.paymentStatus === "verified"}
+                        >
+                          {r.paymentStatus === "verified" ? "Verified" : "Confirm Payment"}
+                        </Button>
+                        {r.paymentStatus !== "rejected" && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="border-red-500/40 text-red-400 hover:bg-red-500/10"
+                            onClick={() => setPaymentStatus(r.id, "rejected")}
+                          >
+                            Reject
+                          </Button>
+                        )}
+                      </div>
                     </td>
                     <td className="px-4 py-4">
                       <div className="flex justify-end gap-1.5">

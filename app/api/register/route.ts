@@ -86,6 +86,7 @@ export async function POST(req: NextRequest) {
       category: category.id,
       categoryMeta: meta,
       paymentRef: data.paymentRef.trim(),
+      paymentStatus: "unverified",
       receiptFile: safeName,
       receiptOriginalName: receipt.name,
       notes: data.notes || "",

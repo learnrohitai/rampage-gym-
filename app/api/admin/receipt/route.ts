@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { promises as fs } from "fs";
+import path from "path";
 import { getSession } from "@/lib/auth";
-import { getUploadPath } from "@/lib/db";
+import { readRegistrations } from "@/lib/db";
 
 export const runtime = "nodejs";
 
@@ -17,7 +18,9 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    const buffer = await fs.readFile(getUploadPath(file));
+    const uploadDir = path.join(process.cwd(), "data", "uploads");
+    const filePath = path.join(uploadDir, path.basename(file));
+    const buffer = await fs.readFile(filePath);
     const ext = file.split(".").pop()?.toLowerCase();
     const types: Record<string, string> = {
       png: "image/png",

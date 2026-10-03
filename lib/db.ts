@@ -16,6 +16,7 @@ export interface Registration {
   paymentRef: string;
   receiptFile: string | null;
   receiptOriginalName: string | null;
+  paymentStatus: "unverified" | "verified" | "rejected";
   status: "pending" | "confirmed" | "rejected";
   createdAt: string;
   notes?: string;
