@@ -109,6 +109,44 @@ export default function CheckInPage() {
     }
   };
 
+  /** Called by the camera scanner: resolve the scanned ID, then verify it. */
+  const handleScan = async (payload: { regId: string; paymentRef: string }) => {
+    const scanned = payload.regId.trim().toUpperCase();
+    if (!scanned) return;
+
+    let target = data;
+    if (!data || data.regId !== scanned) {
+      try {
+        const res = await fetch(
+          `/api/admin/details/${encodeURIComponent(scanned)}`,
+          { cache: "no-store" }
+        );
+        if (!res.ok) throw new Error("not found");
+        const body = await res.json();
+        target = body.registration;
+        setData(target);
+        setRegId(scanned);
+      } catch {
+        toast.error("Scanned ID not found");
+        return;
+      }
+    }
+    if (!target) return;
+
+    try {
+      const res = await fetch("/api/admin/registrations", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: target.id, paymentStatus: "verified" }),
+      });
+      if (!res.ok) throw new Error("Failed");
+      setConfirmed(true);
+      toast.success(`Payment verified for ${target.regId}`);
+    } catch {
+      toast.error("Could not verify");
+    }
+  };
+
   const handleDownload = async () => {
     if (!data?.receiptFile) return;
     const url = `/api/pass/receipt?regId=${encodeURIComponent(
@@ -215,7 +253,7 @@ export default function CheckInPage() {
               <div className="mt-4">
                 <Scanner
                   regId={data.regId}
-                  onVerified={handleAdminVerify}
+                  onVerified={handleScan}
                 />
               </div>
               <Button
