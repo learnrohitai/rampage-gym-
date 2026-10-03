@@ -6,6 +6,9 @@ build
 .env
 *.tsbuildinfo
 next-env.d.ts
-data/*.json
-data/uploads
+data/
 .DS_Store
+
+# local test artifacts
+.test-*
+.ck.txt

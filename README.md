@@ -19,6 +19,23 @@ npm run dev
 
 Useful scripts: `npm run build`, `npm run start`, `npm run typecheck`.
 
+## Testing with mock data
+
+Two scripts seed and verify the site locally. Run them from the repo root
+with the app already started (`npm run start`):
+
+```bash
+bash scripts/seed-test.sh     # 10 registrations: 4 bodybuilding, 3 masters, 3 physique
+bash scripts/verify-test.sh   # 51 assertions against the running app
+```
+
+`seed-test.sh` writes `data/registrations.json` and receipts under
+`data/uploads/`. Both are gitignored — delete `data/` to reset. The verifier
+prints a PASS/FAIL table and exits non-zero on any failure.
+
+The suite covers storage, the category split, CSV/JSON export columns, the
+`/api/pass` lookup and its phone gate, PII exposure, and admin auth.
+
 ## Environment variables
 
 Copy `.env.example` to `.env.local` locally, and add the same keys under

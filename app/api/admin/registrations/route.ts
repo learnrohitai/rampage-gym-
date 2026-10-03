@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
-import { readRegistrations, updateRegistration } from "@/lib/db";
+import { readRegistrations, updateRegistration, type Registration } from "@/lib/db";
 import { toCsv } from "@/lib/utils";
 
 export const runtime = "nodejs";
@@ -33,6 +33,7 @@ export async function GET(req: NextRequest) {
       paymentRef: r.paymentRef,
       receiptFile: r.receiptOriginalName ?? "",
       status: r.status,
+      paymentStatus: r.paymentStatus,
       registeredAt: r.createdAt,
       notes: r.notes ?? "",
     }));
@@ -60,16 +61,35 @@ export async function PATCH(req: NextRequest) {
   if (!session) return unauthorized();
 
   try {
-    const { id, status, notes } = await req.json();
+    const { id, status, notes, paymentStatus } = await req.json();
     if (!id) return NextResponse.json({ error: "Missing id" }, { status: 400 });
 
-    const allowed = ["pending", "confirmed", "rejected"] as const;
-    if (status && !allowed.includes(status)) {
+    const allowedStatus = ["pending", "confirmed", "rejected"];
+    if (status && !allowedStatus.includes(status)) {
       return NextResponse.json({ error: "Invalid status" }, { status: 400 });
+    }
+    const allowedPayment = ["unverified", "verified", "rejected"];
+    if (paymentStatus && !allowedPayment.includes(paymentStatus)) {
+      return NextResponse.json({ error: "Invalid payment status" }, { status: 400 });
+    }
+
+    // The dashboard only exposes payment controls, so mirror the decision onto
+    // registration status — otherwise "Confirmed" stays 0 forever.
+    let nextStatus = status;
+    if (!status && paymentStatus) {
+      nextStatus =
+        paymentStatus === "verified"
+          ? "confirmed"
+          : paymentStatus === "rejected"
+            ? "rejected"
+            : "pending";
     }
 
     const updated = await updateRegistration(id, {
-      ...(status ? { status } : {}),
+      ...(nextStatus ? { status: nextStatus as Registration["status"] } : {}),
+      ...(paymentStatus
+        ? { paymentStatus: paymentStatus as Registration["paymentStatus"] }
+        : {}),
       ...(notes !== undefined ? { notes } : {}),
     });
     if (!updated) return NextResponse.json({ error: "Not found" }, { status: 404 });
