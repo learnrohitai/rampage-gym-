@@ -17,8 +17,8 @@ export const SITE = {
   registrationOpens: "5 October 2026",
   // ISO date the hero countdown counts down to (YYYY-MM-DD)
   registrationOpensISO: "2026-10-05T00:00:00+05:30",
-  registrationDeadline: "8 October 2026",
-  entryFee: 1500,
+  registrationDeadline: "10 October 2026",
+  entryFee: 3500,
   upiId: "rampagegym@upi",
   payeeName: "Rampage Gym",
   // Put your real QR code image at /public/rampage-qr.jpeg
@@ -56,14 +56,14 @@ export const SCHEDULE = [
     desc: "Entries open — lock your spot before your weight class fills up.",
   },
   {
-    date: "8 Oct 2026",
-    title: "Registration Closes",
-    desc: "Last date to submit your entry online with payment.",
-  },
-  {
     date: "9 Oct 2026",
     title: "Check-in & Weigh-in",
     desc: "Report at venue with ID proof. Height & weight verification.",
+  },
+  {
+    date: "10 Oct 2026",
+    title: "Registration Closes",
+    desc: "Last date to submit your entry online with payment.",
   },
   {
     date: "10 Oct 2026 • 9 AM",
