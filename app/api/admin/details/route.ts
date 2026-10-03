@@ -35,8 +35,3 @@ export async function GET(
     return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
 }
-
-export async function listRegistrations() {
-  const { readRegistrations } = await import("@/lib/db");
-  return readRegistrations();
-}
