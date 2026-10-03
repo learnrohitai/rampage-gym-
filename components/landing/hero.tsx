@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { ArrowRight, CalendarDays, MapPin, Trophy, Users } from "lucide-react";
-import { AnimatedShinyText } from "@/components/magicui/shiny-text";
 import Countdown from "@/components/landing/countdown";
 import { Button } from "@/components/ui/button";
 import { SITE } from "@/lib/site";
@@ -34,9 +33,9 @@ export default function Hero() {
             <span className="absolute inline-flex size-full animate-ping rounded-full bg-gold opacity-75" />
             <span className="relative inline-flex size-2 rounded-full bg-gold" />
           </span>
-          <AnimatedShinyText className="text-sm font-semibold">
+          <span className="text-sm font-semibold text-gold">
             Registration Opens {SITE.registrationOpens} — Closes {SITE.registrationDeadline}
-          </AnimatedShinyText>
+          </span>
         </motion.div>
 
         <motion.h1

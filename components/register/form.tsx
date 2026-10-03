@@ -211,7 +211,13 @@ export default function RegistrationForm({
                       setValue(`categoryMeta.${f.name}`, v, { shouldValidate: true })
                     }
                   >
-                    <SelectTrigger className="mt-1.5">
+                    <SelectTrigger
+                      className={`mt-1.5 ${
+                        errors.categoryMeta?.[f.name]
+                          ? "border-red-500/70 ring-1 ring-red-500/40"
+                          : ""
+                      }`}
+                    >
                       <SelectValue placeholder={`Select ${f.label.toLowerCase()}`} />
                     </SelectTrigger>
                     <SelectContent>
@@ -225,7 +231,9 @@ export default function RegistrationForm({
                     type={f.type === "number" ? "number" : "text"}
                     step="any"
                     placeholder={f.placeholder}
-                    className="mt-1.5"
+                    className={`mt-1.5 ${
+                      errors.categoryMeta?.[f.name] ? "border-red-500/70" : ""
+                    }`}
                     {...register(`categoryMeta.${f.name}` as const)}
                   />
                 )}
