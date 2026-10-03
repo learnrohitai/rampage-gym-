@@ -18,12 +18,12 @@ function sanitize(reg: Registration) {
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: Promise<{ regId: string }> }
+  { params }: { params: { regId: string } }
 ) {
   const session = await getSession();
   if (!session) return unauthorized();
 
-  const { regId } = await params;
+  const regId = params.regId;
   if (!regId) return NextResponse.json({ error: "Missing regId" }, { status: 400 });
 
   try {

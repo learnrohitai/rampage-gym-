@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Copy, Download, CheckCircle2, Loader2, QrCode, ShieldCheck, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -22,29 +22,38 @@ interface CheckInData {
 
 export default function CheckInPage() {
   const [data, setData] = useState<CheckInData | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [regId, setRegId] = useState("");
   const [role, setRole] = useState<"admin" | "candidate">("candidate");
   const [confirmed, setConfirmed] = useState(false);
   const [copied, setCopied] = useState(false);
 
-  useEffect(() => {
-    if (regId) {
-      fetch(`/api/admin/details/${encodeURIComponent(regId)}`, { cache: "no-store" })
-        .then(async (res) => {
-          if (!res.ok) {
-            const err = await res.json();
-            throw new Error(err.error || "Not found");
-          }
-          return res.json();
-        })
-        .then((res) => setData(res.registration))
-        .catch(() => toast.error("Invalid or not found"))
-        .finally(() => setLoading(false));
-    } else {
+  const lookup = async () => {
+    const q = regId.trim();
+    if (!q) {
+      toast.error("Enter a registration number");
+      return;
+    }
+    setLoading(true);
+    try {
+      const res = await fetch(`/api/admin/details/${encodeURIComponent(q)}`, {
+        cache: "no-store",
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || "Not found");
+      }
+      const body = await res.json();
+      setData(body.registration);
+      setConfirmed(false);
+      toast.success("Registration found");
+    } catch {
+      setData(null);
+      toast.error("Invalid or not found");
+    } finally {
       setLoading(false);
     }
-  }, [regId]);
+  };
 
   const copyRef = async () => {
     if (!data) return;
@@ -91,24 +100,6 @@ export default function CheckInPage() {
     );
   }
 
-  if (!data) {
-    return (
-      <div className="container py-10 text-center">
-        <p className="text-muted-foreground">No registration found for that ID.</p>
-        <Button
-          variant="outline"
-          onClick={() => {
-            setRegId("");
-            setData(null);
-            setConfirmed(false);
-          }}
-        >
-          Back
-        </Button>
-      </div>
-    );
-  }
-
   const isAdmin = role === "admin";
 
   return (
@@ -148,28 +139,10 @@ export default function CheckInPage() {
                 value={regId}
                 onChange={(e) => setRegId(e.target.value)}
                 placeholder="e.g. MI26-1234"
-                onKeyDown={(e) => e.key === "Enter" && setRegId((e.target as HTMLInputElement).value)}
+                onKeyDown={(e) => e.key === "Enter" && lookup()}
               />
             </div>
-            <Button
-              onClick={() => {
-                fetch(`/api/admin/details/${encodeURIComponent(regId)}`, { cache: "no-store" })
-                  .then(async (res) => {
-                    if (!res.ok) {
-                      const err = await res.json();
-                      throw new Error(err.error || "Not found");
-                    }
-                    return res.json();
-                  })
-                  .then((res) => {
-                    setData(res.registration);
-                    setConfirmed(false);
-                    toast.success("Registration found");
-                  })
-                  .catch(() => toast.error("Invalid or not found"))
-                  .finally(() => setLoading(false));
-              }}
-            >
+            <Button onClick={lookup}>
               <ShieldCheck className="size-4" /> Search
             </Button>
           </div>
@@ -231,44 +204,79 @@ export default function CheckInPage() {
             </div>
           )}
         </div>
-      ) : (
-        <div className="mt-8 rounded-2xl border border-white/10 bg-card p-6">
-          <div className="text-center">
-            <QrCode className="size-12 text-gold mx-auto" />
-            <h2 className="mt-4 font-display text-2xl font-black">
-              {data.regId}
-            </h2>
-            <p className="text-sm text-muted-foreground">
-              {data.name} — {data.category}
-            </p>
-          </div>
+      ) : (        <div className="mt-8 rounded-2xl border border-white/10 bg-card p-6">
+          {!data ? (
+            <div>
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex-1">
+                  <Label>Enter your Registration ID</Label>
+                  <Input
+                    value={regId}
+                    onChange={(e) => setRegId(e.target.value)}
+                    placeholder="e.g. MI26-1234"
+                    onKeyDown={(e) => e.key === "Enter" && lookup()}
+                  />
+                </div>
+                <Button onClick={lookup}>
+                  <QrCode className="size-4" /> Search
+                </Button>
+              </div>
+              <p className="mt-4 text-center text-sm text-muted-foreground">
+                Enter the registration ID from your confirmation to view and
+                download your QR pass.
+              </p>
+            </div>
+          ) : (
+            <div>
+              <div className="text-center">
+                <QrCode className="size-12 text-gold mx-auto" />
+                <h2 className="mt-4 font-display text-2xl font-black">
+                  {data.regId}
+                </h2>
+                <p className="text-sm text-muted-foreground">
+                  {data.name} — {data.category}
+                </p>
+              </div>
 
-          <div className="mt-6 text-center text-sm text-muted-foreground">
-            <p className="font-mono font-mono">{data.paymentRef}</p>
-            <Button
-              size="sm"
-              variant="link"
-              className="mt-1"
-              onClick={copyRef}
-            >
-              {copied ? <CheckCircle2 className="size-3" /> : <Copy className="size-3" />}
-              {copied ? "Copied" : "Copy reference"}
-            </Button>
-          </div>
+              <div className="mt-6 text-center text-sm text-muted-foreground">
+                <p className="font-mono">{data.paymentRef}</p>
+                <Button
+                  size="sm"
+                  variant="link"
+                  className="mt-1"
+                  onClick={copyRef}
+                >
+                  {copied ? <CheckCircle2 className="size-3" /> : <Copy className="size-3" />} {copied ? "Copied" : "Copy reference"}
+                </Button>
+              </div>
 
-          <div className="mt-6 text-center">
-            <Button
-              variant="gold"
-              className="text-base px-8"
-              onClick={handleDownload}
-            >
-              <Download className="size-4" />
-              Download QR Pass
-            </Button>
-            <p className="mt-2 text-xs text-muted-foreground">
-              Save this pass for check-in. Payment will be verified by the organizer.
-            </p>
-          </div>
+              <div className="mt-6 text-center">
+                <Button
+                  variant="gold"
+                  className="text-base px-8"
+                  onClick={handleDownload}
+                >
+                  <Download className="size-4" />
+                  Download QR Pass
+                </Button>
+                <p className="mt-2 text-xs text-muted-foreground">
+                  Save this pass for check-in. Payment will be verified by the organizer.
+                </p>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="mt-3"
+                  onClick={() => {
+                    setRegId("");
+                    setData(null);
+                    setConfirmed(false);
+                  }}
+                >
+                  Search another ID
+                </Button>
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>
