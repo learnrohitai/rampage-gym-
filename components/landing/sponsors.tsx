@@ -19,7 +19,7 @@ export default function Sponsors() {
       </div>
 
       <div className="mask-fade-x mt-14 space-y-5">
-        <Marquee pauseOnHover className="[--duration:28s]">
+        <Marquee pauseOnHover className="[--duration:65s]">
           {SPONSORS.map((s) => (
             <div
               key={s}
@@ -32,7 +32,7 @@ export default function Sponsors() {
             </div>
           ))}
         </Marquee>
-        <Marquee pauseOnHover reverse className="[--duration:32s]">
+        <Marquee pauseOnHover reverse className="[--duration:75s]">
           {[...SPONSORS].reverse().map((s) => (
             <div
               key={s}

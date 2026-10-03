@@ -46,6 +46,20 @@ export const registrationSchema = z.object({
       "PNG, JPG, WEBP or PDF only"
     ),
   notes: z.string().optional(),
+})
+.superRefine((val, ctx) => {
+  const cat = getCategory(val.category);
+  if (!cat) return;
+  for (const f of cat.fields) {
+    const v = val.categoryMeta?.[f.name];
+    if (v === undefined || v === null || String(v).trim() === "") {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["categoryMeta", f.name],
+        message: `${f.label} is required`,
+      });
+    }
+  }
 });
 
 export type FormValues = z.infer<typeof registrationSchema>;
@@ -212,9 +226,7 @@ export default function RegistrationForm({
                     step="any"
                     placeholder={f.placeholder}
                     className="mt-1.5"
-                    {...register(`categoryMeta.${f.name}` as const, {
-                      required: `${f.label} is required`,
-                    })}
+                    {...register(`categoryMeta.${f.name}` as const)}
                   />
                 )}
                 {err(errors.categoryMeta?.[f.name]?.message as string | undefined)}
