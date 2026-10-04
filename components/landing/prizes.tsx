@@ -24,8 +24,8 @@ export default function Prizes() {
             PRIZE <span className="text-gradient-gold">POOL</span>
           </h2>
           <p className="mt-4 text-muted-foreground">
-            Cash, trophies and supplement hampers for the top athletes of Mr.
-            India 2026.
+            Cash, trophies and supplement hampers for the top athletes of
+            Ricela Mr. India.
           </p>
         </div>
 

@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 const LINKS = [
   { href: "/#categories", label: "Categories" },
   { href: "/#prizes", label: "Prizes" },
+  { href: "/#gallery", label: "Gallery" },
   { href: "/#schedule", label: "Schedule" },
   { href: "/#sponsors", label: "Sponsors" },
   { href: "/#faq", label: "FAQ" },
@@ -29,7 +30,7 @@ export default function Navbar() {
               RAMPAGE
             </span>
             <span className="block text-[10px] font-bold tracking-[0.3em] text-muted-foreground">
-              GYM • MR. INDIA
+              RICELA MR. INDIA
             </span>
           </span>
         </Link>

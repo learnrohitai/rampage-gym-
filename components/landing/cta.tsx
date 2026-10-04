@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { motion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
 import { ShineBorder } from "@/components/magicui/shiny-text";
@@ -18,6 +19,15 @@ export default function Cta() {
           transition={{ duration: 0.6 }}
           className="noise relative mx-auto max-w-4xl overflow-hidden rounded-3xl border border-gold/30 bg-gradient-to-b from-card to-black p-12 text-center"
         >
+          <Image
+            src="/images/athlete-1.jpeg"
+            alt=""
+            aria-hidden
+            fill
+            sizes="(max-width: 1024px) 100vw, 896px"
+            className="object-cover object-top opacity-30"
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/75 to-black/90" />
           <ShineBorder />
           <div className="pointer-events-none absolute -top-24 left-1/2 size-[400px] -translate-x-1/2 rounded-full bg-amber-500/10 blur-[90px]" />
 

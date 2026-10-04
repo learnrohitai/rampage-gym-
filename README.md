@@ -1,6 +1,6 @@
-# Mr. India 2026 — Rampage Gym
+# Ricela Mr. India — Rampage Gym
 
-Registration site for the Mr. India 2026 bodybuilding championship: landing
+Registration site for the Ricela Mr. India bodybuilding championship: landing
 page, 3-step registration with UPI QR payment, admin dashboard, and QR
 check-in.
 

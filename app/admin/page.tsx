@@ -62,7 +62,7 @@ export default function AdminPage() {
               ORGANIZER <span className="text-gradient-gold">LOGIN</span>
             </h1>
             <p className="mt-1 text-sm text-muted-foreground">
-              Rampage Gym — Mr. India 2026 control panel
+              Rampage Gym — Ricela Mr. India control panel
             </p>
           </div>
 

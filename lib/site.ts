@@ -1,5 +1,5 @@
 export const SITE = {
-  eventName: "MR. INDIA 2026",
+  eventName: "RICELA MR. INDIA",
   eventTagline: "The Ultimate Battle For The Iron Crown",
   gym: {
     name: "Rampage Gym",
@@ -92,7 +92,7 @@ export const SPONSORS = [
 
 export const FAQS = [
   {
-    q: "Who can participate in Mr. India 2026?",
+    q: "Who can participate in Ricela Mr. India?",
     a: "Any Indian citizen aged 18 or above with a valid government ID. Athletes above 35 years may also enter the Masters Bodybuilding division.",
   },
   {

@@ -31,7 +31,7 @@ export default function Sponsors() {
         </div>
 
         <p className="mt-10 text-center text-sm text-muted-foreground">
-          Want to sponsor Mr. India 2026?{" "}
+          Want to sponsor Ricela Mr. India?{" "}
           <a href="mailto:info@rampagegym.in" className="font-semibold text-gold hover:underline">
             Get in touch →
           </a>

@@ -13,9 +13,9 @@ const bebas = Bebas_Neue({
 });
 
 export const metadata: Metadata = {
-  title: "MR. INDIA 2026 — Rampage Gym | Bodybuilding Championship",
+  title: "Ricela Mr. India — Rampage Gym | Bodybuilding Championship",
   description:
-    "Mr. India 2026 by Rampage Gym. Bodybuilding (7 weight classes), Masters 35+, and Men's Physique. Register online with QR payment.",
+    "Ricela Mr. India by Rampage Gym. Bodybuilding (7 weight classes), Masters 35+, and Men's Physique. Register online with QR payment.",
 };
 
 export default function RootLayout({

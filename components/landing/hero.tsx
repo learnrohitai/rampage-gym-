@@ -19,6 +19,8 @@ export default function Hero() {
         aria-hidden
         className="pointer-events-none absolute inset-x-0 top-16 select-none text-center font-display text-[26vw] font-black leading-none text-stroke-gold opacity-[0.06] md:text-[18vw]"
       >
+        RICELA
+        <br />
         MR.INDIA
       </div>
 
@@ -45,6 +47,8 @@ export default function Hero() {
           className="font-display text-7xl font-black leading-[0.92] tracking-wide drop-shadow-[0_4px_30px_rgba(245,185,66,0.25)] sm:text-8xl md:text-9xl lg:text-[8rem]"
         >
           <span className="text-gradient-gold drop-shadow-[0_0_40px_rgba(245,185,66,0.35)]">
+            RICELA
+            <br />
             MR. INDIA
           </span>
           <br />
