@@ -10,8 +10,6 @@ const LINKS = [
   { href: "/#categories", label: "Categories" },
   { href: "/#prizes", label: "Prizes" },
   { href: "/#gallery", label: "Gallery" },
-  { href: "/#schedule", label: "Schedule" },
-  { href: "/#faq", label: "FAQ" },
 ];
 
 export default function Navbar() {

@@ -163,7 +163,7 @@ export default function Hero() {
             <Users className="size-4" /> Limited entries per class
           </span>
           <span className="inline-flex items-center gap-2 font-semibold">
-            <Trophy className="size-4 text-gold" /> ₹1,00,000+ prize pool
+            <MapPin className="size-4 text-gold" /> MGM Public School, Dugri Phase
           </span>
         </motion.div>
 

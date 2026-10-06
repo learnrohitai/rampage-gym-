@@ -28,7 +28,7 @@ const WEIGHT_RANGES = [
   "Above 85 kg",
 ];
 
-const HEIGHT_RANGES = ["Below 5'9\"", "Above 5'9\""];
+const HEIGHT_RANGES = ["Below 5.8", "5.8 and Above"];
 
 export const CATEGORIES: Category[] = [
   {
@@ -76,7 +76,7 @@ export const CATEGORIES: Category[] = [
     short: "2 Height Classes",
     icon: "sparkles",
     color: "from-cyan-500 to-blue-700",
-    desc: "Aesthetic, conditioned, board-shorts physique. Two height classes — below and above 5'9\".",
+    desc: "Aesthetic, conditioned, board-shorts physique. Two height classes — below 5.8 and 5.8 and above.",
     fields: [
       {
         name: "heightClass",

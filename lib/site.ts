@@ -9,14 +9,13 @@ export const SITE = {
   eventDate: "18 October 2026",
   // ISO date used by the hero countdown (YYYY-MM-DD)
   eventDateISO: "2026-10-18T00:00:00+05:30",
-  venue: "Rampage Gym Arena",
-  city: "India",
-  contactPhone: "+91 98765 43210",
-  contactEmail: "info@rampagegym.in",
+  venue: "MGM Public School, Dugri Phase",
+  city: "Ludhiana, Punjab",
+  contactPhone: "9814480965",
   instagram: "https://instagram.com/rampagegym",
   registrationOpens: "5 October 2026",
   // ISO date the hero countdown counts down to (YYYY-MM-DD)
-  registrationOpensISO: "2026-10-05T00:00:00+05:30",
+  registrationDeadlineISO: "2026-10-10T23:59:00+05:30",
   registrationDeadline: "10 October 2026",
   entryFee: 3500,
   upiId: "rampagegym@upi",

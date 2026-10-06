@@ -13,7 +13,7 @@ type Remaining = {
   seconds: number;
 };
 
-const TARGET = new Date(SITE.registrationOpensISO).getTime();
+const TARGET = new Date(SITE.registrationDeadlineISO).getTime();
 
 function diff(target: number): Remaining {
   const total = Math.max(0, target - Date.now());
@@ -36,11 +36,10 @@ export default function Countdown() {
   }, []);
 
   const units = remaining
-    ? [
-        { label: "DAYS", value: remaining.days },
-        { label: "HOURS", value: remaining.hours },
-        { label: "MINUTES", value: remaining.minutes },
-        { label: "SECONDS", value: remaining.seconds },
+    ? [        {label: "DAYS", value: remaining.days},
+        {label: "HRS", value: remaining.hours},
+        {label: "MIN", value: remaining.minutes},
+        {label: "SEC", value: remaining.seconds},
       ]
     : [
         { label: "DAYS", value: null },
@@ -55,7 +54,7 @@ export default function Countdown() {
     <div className="w-full">
       <p className="flex items-center justify-center gap-2 font-display text-sm tracking-[0.4em] text-gold">
         <Flame className="size-4" />
-        {done ? "REGISTRATIONS ARE OPEN" : "REGISTRATION OPENS IN"}
+        {done ? "REGISTRATION CLOSED" : "REGISTRATION ENDS IN"}
       </p>
 
       <div className="mx-auto mt-4 grid max-w-2xl grid-cols-2 gap-3 sm:grid-cols-4">
@@ -76,7 +75,7 @@ export default function Countdown() {
       </div>
 
       <p className="mt-4 text-xs font-semibold uppercase tracking-[0.25em] text-muted-foreground">
-        {SITE.registrationOpens} • {SITE.eventName}
+        Closes {SITE.registrationDeadline} • {SITE.eventName}
       </p>
 
       {done && (
