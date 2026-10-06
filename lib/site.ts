@@ -18,7 +18,7 @@ export const SITE = {
   registrationDeadlineISO: "2026-10-10T23:59:00+05:30",
   registrationDeadline: "10 October 2026",
   entryFee: 3500,
-  upiId: "rampagegym@upi",
+  upiId: "flex303-3@okhdfcbank",
   payeeName: "Rampage Gym",
   // Put your real QR code image at /public/rampage-qr.jpeg
   qrImage: "/rampage-qr.jpeg",
