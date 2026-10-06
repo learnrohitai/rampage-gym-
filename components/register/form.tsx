@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -76,6 +76,7 @@ export default function RegistrationForm({
   const [categoryFields, setCategoryFields] = useState(() =>
     getCategory(category)?.fields ?? []
   );
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const {
     register,
@@ -100,19 +101,42 @@ export default function RegistrationForm({
   const onSubmit = async (values: FormValues) => {
     try {
       const fd = new FormData();
-      Object.entries(values).forEach(([k, v]) => {
-        if (k === "categoryMeta") {
-          fd.append(k, JSON.stringify(v || {}));
-        } else if (k === "receipt") {
-          if (v instanceof File) fd.append(k, v);
-        } else if (v !== undefined && v !== null) {
-          fd.append(k, String(v));
-        }
-      });
+
+      // Append all scalar fields
+      fd.append("name", values.name);
+      fd.append("phone", values.phone);
+      fd.append("email", values.email);
+      fd.append("dob", values.dob);
+      fd.append("gender", values.gender);
+      fd.append("city", values.city);
+      fd.append("gym", values.gym);
+      fd.append("category", values.category);
+      fd.append("categoryMeta", JSON.stringify(values.categoryMeta || {}));
+      fd.append("paymentRef", values.paymentRef);
+      if (values.notes) fd.append("notes", values.notes);
+
+      // Append receipt file — try values.first, then fall back to the DOM input
+      let receipt: File | null = null;
+      console.log('[form] values.receipt:', values.receipt, '| type:', typeof values.receipt, '| instanceof File:', values.receipt instanceof File);
+      console.log('[form] fileInputRef.current?.files:', fileInputRef.current?.files);
+      if (values.receipt instanceof File) {
+        receipt = values.receipt;
+      } else if (fileInputRef.current?.files?.[0]) {
+        receipt = fileInputRef.current.files[0];
+      }
+      console.log('[form] final receipt:', receipt);
+      if (!receipt || receipt.size === 0) {
+        toast.error('Please select a payment screenshot');
+        return;
+      }
+      fd.append('receipt', receipt);
 
       const res = await fetch("/api/register", { method: "POST", body: fd });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Submission failed");
+      if (!res.ok) {
+        console.error("register API error:", data);
+        throw new Error(data.error || "Submission failed");
+      }
       toast.success(`Registered! Your ID: ${data.regId}`, { duration: 8000 });
       onSuccess(data.regId);
     } catch (err) {
@@ -264,7 +288,11 @@ export default function RegistrationForm({
                 type="file"
                 accept="image/png,image/jpeg,image/webp,application/pdf"
                 className="mt-1.5 cursor-pointer file:mr-3 file:rounded-md file:border-0 file:bg-gold/15 file:px-3 file:py-1.5 file:text-xs file:font-bold file:text-gold"
-                {...register("receipt")}
+                ref={fileInputRef}
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) setValue("receipt", file, { shouldValidate: true });
+                }}
               />
               {err(errors.receipt?.message as string | undefined)}
             </div>

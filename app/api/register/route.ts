@@ -1,8 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { promises as fs } from "fs";
-import { addRegistration, buildRegistration, ensureDirs, getUploadDir } from "@/lib/db";
+import { addRegistration, buildRegistration, uploadReceipt, getReceiptBucket } from "@/lib/db";
 import { CATEGORIES } from "@/lib/categories";
+
+interface FormBody {
+  name: string;
+  phone: string;
+  email: string;
+  dob: string;
+  gender: string;
+  city: string;
+  gym: string;
+  category: string;
+  categoryMeta: string;
+  paymentRef: string;
+  notes: string | undefined;
+}
 
 export const runtime = "nodejs";
 
@@ -29,13 +42,33 @@ function bad(message: string, status = 400) {
 export async function POST(req: NextRequest) {
   try {
     const formData = await req.formData();
-    const raw = Object.fromEntries(formData.entries()) as Record<string, string>;
     const receipt = formData.get("receipt");
-
+    const raw: FormBody = {
+      name: (formData.get("name") as string) || "",
+      phone: (formData.get("phone") as string) || "",
+      email: (formData.get("email") as string) || "",
+      dob: (formData.get("dob") as string) || "",
+      gender: (formData.get("gender") as string) || "",
+      city: (formData.get("city") as string) || "",
+      gym: (formData.get("gym") as string) || "",
+      category: (formData.get("category") as string) || "",
+      categoryMeta: (formData.get("categoryMeta") as string) || "{}",
+      paymentRef: (formData.get("paymentRef") as string) || "",
+      notes: formData.get("notes") as string | undefined,
+    };
+    const keys: string[] = [];
+    formData.forEach((_, k) => keys.push(String(k)));
+    console.log('[API] received formData keys:', keys);
+    console.log('[API] receipt:', receipt, '| type:', typeof receipt, '| instanceof File:', receipt instanceof File);
+    if (receipt instanceof File) {
+      console.log('[API] receipt.name:', receipt.name, '| size:', receipt.size, '| type:', receipt.type);
+    }
     const parsed = schema.safeParse(raw);
-    if (!parsed.success) {
-      const first = parsed.error.issues[0];
-      return bad(`Invalid field: ${first.path.join(".") || "unknown"}`);
+      if (!parsed.success) {
+        const issues = parsed.error.issues as { path: string[] }[];
+        const first = issues[0];
+        const path = first?.path.reduce((acc, x) => acc + "." + String(x), "").slice(1) || "unknown";
+        return bad(`Invalid field: ${path}`);
     }
     const data = parsed.data;
 
@@ -69,11 +102,10 @@ export async function POST(req: NextRequest) {
     const okTypes = ["image/png", "image/jpeg", "image/webp", "application/pdf"];
     if (!okTypes.includes(receipt.type)) return bad("File must be PNG, JPG, WEBP or PDF");
 
-    await ensureDirs();
+    // Upload receipt to Supabase Storage
     const ext = receipt.name.split(".").pop()?.toLowerCase() || "png";
-    const safeName = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
-    const buffer = Buffer.from(await receipt.arrayBuffer());
-    await fs.writeFile(`${getUploadDir()}/${safeName}`, buffer);
+    const storagePath = `receipts/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+    const { url, path: storedPath } = await uploadReceipt(getReceiptBucket(), receipt, storagePath);
 
     const reg = buildRegistration({
       name: data.name.trim(),
@@ -87,15 +119,22 @@ export async function POST(req: NextRequest) {
       categoryMeta: meta,
       paymentRef: data.paymentRef.trim(),
       paymentStatus: "unverified",
-      receiptFile: safeName,
+      receiptFile: storedPath,
       receiptOriginalName: receipt.name,
       notes: data.notes || "",
     });
 
-    await addRegistration(reg);
-    return NextResponse.json({ ok: true, regId: reg.regId });
-  } catch (e) {
+    const saved = await addRegistration(reg);
+    return NextResponse.json({ ok: true, regId: saved.regId });
+  } catch (e: unknown) {
     console.error("register error", e);
-    return bad("Server error, please try again", 500);
+    let msg = "Server error, please try again";
+    if (typeof e === "object" && e !== null) {
+      const err = e as { message?: string; error?: { message?: string }; statusText?: string };
+      msg = err.message ?? err.error?.message ?? err.statusText ?? msg;
+    } else if (typeof e === "string") {
+      msg = e;
+    }
+    return bad(msg, 500);
   }
 }

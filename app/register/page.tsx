@@ -4,11 +4,12 @@ import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
-import { CheckCircle2, Copy, Home, PartyPopper } from "lucide-react";
+import { CheckCircle2, Copy, Download, Home, PartyPopper } from "lucide-react";
 import { toast } from "sonner";
 import { StepCategory, StepPayment } from "@/components/register/steps";
 import RegistrationForm from "@/components/register/form";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { SITE } from "@/lib/site";
 
 function RegisterInner() {
@@ -63,7 +64,7 @@ function RegisterInner() {
           <Copy className="size-4 text-muted-foreground group-hover:text-gold" />
         </button>
 
-        <div className="mt-8 flex gap-3">
+        <div className="mt-8 flex flex-wrap justify-center gap-3">
           <Button asChild variant="outline">
             <Link href="/"><Home /> Back Home</Link>
           </Button>
@@ -73,6 +74,21 @@ function RegisterInner() {
           <Button asChild variant="outline">
             <Link href={`/?status=${regId}#faq`}>Check Status</Link>
           </Button>
+          <Button variant="outline" asChild>
+            <a href="#download-form"><Download /> Download My Form</a>
+          </Button>
+        </div>
+        <div id="download-form" className="mt-8 w-full max-w-md">
+          <div className="rounded-2xl border border-white/10 bg-card p-6">
+            <h3 className="mb-3 font-display text-lg font-bold tracking-widest text-gold">
+              DOWNLOAD YOUR FILLED FORM
+            </h3>
+            <p className="mb-4 text-xs text-muted-foreground">
+              Enter your Registration ID and mobile number to download a structured
+              copy of your registration.
+            </p>
+            <DownloadForm regId={regId} />
+          </div>
         </div>
         <p className="mt-6 flex items-center gap-2 text-xs text-muted-foreground">
           <CheckCircle2 className="size-4 text-emerald-400" />
@@ -149,6 +165,79 @@ function RegisterInner() {
           />
         )}
       </AnimatePresence>
+    </div>
+  );
+}
+
+function DownloadForm({ regId }: { regId: string }) {
+  const [phone, setPhone] = useState("");
+  const [downloading, setDownloading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleDownload = async () => {
+    if (!phone.trim()) {
+      setError("Please enter your mobile number");
+      return;
+    }
+    setError(null);
+    setDownloading(true);
+    try {
+      const res = await fetch(`/api/register/${regId}/download?phone=${encodeURIComponent(phone)}`);
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Download failed");
+      }
+      // Trigger download
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `my-registration-${regId}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Something went wrong");
+    } finally {
+      setDownloading(false);
+    }
+  };
+
+  return (
+    <div className="space-y-3">
+      <div className="grid gap-3 sm:grid-cols-2">
+        <div>
+          <label className="text-xs font-semibold text-muted-foreground">Registration ID</label>
+          <Input value={regId} disabled className="mt-1 font-mono text-sm" />
+        </div>
+        <div>
+          <label className="text-xs font-semibold text-muted-foreground">Mobile Number</label>
+          <Input
+            type="tel"
+            inputMode="numeric"
+            placeholder="10-digit mobile"
+            className="mt-1"
+            value={phone}
+            onChange={(e) => setPhone(e.target.value.replace(/\D/g, "").slice(0, 10))}
+          />
+        </div>
+      </div>
+      {error && (
+        <p className="text-xs font-medium text-red-400">{error}</p>
+      )}
+      <Button
+        variant="gold"
+        size="sm"
+        className="w-full"
+        onClick={handleDownload}
+        disabled={downloading || phone.length < 10}
+      >
+        {downloading ? "Downloading…" : "⬇ Download My Filled Form"}
+      </Button>
+      <p className="text-[10px] text-muted-foreground">
+        Your form will download as a JSON file with all your details.
+      </p>
     </div>
   );
 }

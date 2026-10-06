@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
-import { readRegistrations } from "@/lib/db";
+import { findRegistrationById } from "@/lib/db";
 import type { Registration } from "@/lib/db";
 
 function unauthorized() {
@@ -27,8 +27,7 @@ export async function GET(
   if (!regId) return NextResponse.json({ error: "Missing regId" }, { status: 400 });
 
   try {
-    const raw = await readRegistrations();
-    const reg = raw.find((r) => r.regId === regId || r.id === regId);
+    const reg = await findRegistrationById(regId);
     if (!reg) return NextResponse.json({ error: "Not found" }, { status: 404 });
     return NextResponse.json({ registration: sanitize(reg) });
   } catch {

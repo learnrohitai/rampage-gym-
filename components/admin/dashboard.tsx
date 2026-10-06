@@ -246,10 +246,10 @@ export default function Dashboard({ onLogout }: { onLogout: () => void }) {
                 <th className="px-4 py-4">Category</th>
                 <th className="px-4 py-4 hidden md:table-cell">Contact</th>
                 <th className="px-4 py-4 hidden lg:table-cell">Payment</th>
-                <th className="px-4 py-4">Status</th>
-                <th className="px-4 py-4 text-right">Actions</th>
-              </tr>
-            </thead>
+                <th className="px-4 py-4">Status</th>                    <th className="px-4 py-4 text-right">Actions</th>
+                    <th className="px-4 py-4 text-right">Download</th>
+                  </tr>
+                </thead>
             <tbody>
               {loading && (
                 <tr>
@@ -351,6 +351,15 @@ export default function Dashboard({ onLogout }: { onLogout: () => void }) {
                           </Button>
                         )}
                       </div>
+                    </td>
+                    <td className="px-4 py-4 text-right">
+                      <a
+                        href={`/api/admin/registrations/${r.regId}/download`}
+                        download
+                        className="inline-flex items-center gap-1 text-xs font-semibold text-gold hover:underline"
+                      >
+                        <Download className="size-3.5" /> JSON
+                      </a>
                     </td>
                   </tr>
                 ))}

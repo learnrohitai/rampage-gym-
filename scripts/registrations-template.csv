@@ -1,0 +1,2 @@
+id,reg_id,name,phone,email,dob,gender,city,gym,category,category_meta,payment_ref,receipt_file,receipt_original_name,payment_status,status,created_at,notes
+֍֍֍,֍֍֍,Full Name,9876543210,you@email.com,2000-01-01,male,Mumbai,My Gym,bodybuilding,"{""weightClass"":""Below 60 kg"",""competitiveExperience"":""Beginner""}",12345678,,Receipt.png,unverified,pending,2026-10-07T10:00:00+05:30,Test

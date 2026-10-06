@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { promises as fs } from "fs";
-import path from "path";
-import { readRegistrations } from "@/lib/db";
+import { findRegistrationById, downloadReceipt, getReceiptBucket } from "@/lib/db";
 
 const TYPES: Record<string, string> = {
   png: "image/png",
@@ -24,19 +22,14 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    const regs = await readRegistrations();
-    const reg = regs.find(
-      (r) => (r.regId === regId || r.id === regId) && r.phone === phone
-    );
-    if (!reg || !reg.receiptFile) {
+    const reg = await findRegistrationById(regId);
+    if (!reg || reg.phone !== phone || !reg.receiptFile) {
       return NextResponse.json({ error: "Not found" }, { status: 404 });
     }
 
-    const uploadDir = path.join(process.cwd(), "data", "uploads");
-    const filePath = path.join(uploadDir, path.basename(reg.receiptFile));
-    const buffer = await fs.readFile(filePath);
-
-    const ext = reg.receiptFile.split(".").pop()?.toLowerCase() || "png";
+    const bucket = getReceiptBucket();
+    const buffer = await downloadReceipt(bucket, reg.receiptFile);
+    const ext = reg.receiptFile.split("/").pop()?.split(".").pop()?.toLowerCase() ?? "png";
 
     return new NextResponse(new Uint8Array(buffer), {
       headers: {
