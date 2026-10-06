@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { ArrowUp, Instagram, MapPin, Phone, Zap } from "lucide-react";
 import { SITE } from "@/lib/site";
 
@@ -8,7 +7,7 @@ export default function Footer() {
 
   return (
     <footer className="relative border-t border-white/5 bg-black/40">
-      <div className="container grid gap-10 py-14 md:grid-cols-3">
+      <div className="container grid gap-10 py-14 md:grid-cols-2">
         <div>
           <div className="flex items-center gap-2">
             <span className="grid size-9 place-items-center rounded-lg bg-gradient-to-br from-amber-400 to-red-600 text-black">
@@ -22,18 +21,6 @@ export default function Footer() {
             {SITE.eventName} — {SITE.eventTagline}. Organized with passion by{" "}
             {SITE.organizedBy}.
           </p>
-        </div>
-
-        <div>
-          <h4 className="font-display text-sm font-bold tracking-widest text-gold">
-            QUICK LINKS
-          </h4>
-          <ul className="mt-4 space-y-2 text-sm text-muted-foreground">
-            <li><Link href="/#categories" className="hover:text-primary">Categories</Link></li>
-            <li><Link href="/register" className="hover:text-primary">Register</Link></li>
-            <li><Link href="/#rules" className="hover:text-primary">Rules</Link></li>
-            <li><Link href="/admin" className="hover:text-primary">Organizer Login</Link></li>
-          </ul>
         </div>
 
         <div>
