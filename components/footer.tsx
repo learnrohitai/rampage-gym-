@@ -1,8 +1,11 @@
 import Link from "next/link";
-import { Instagram, Mail, MapPin, Phone, Zap } from "lucide-react";
+import { ArrowUp, Instagram, Mail, MapPin, Phone, Zap } from "lucide-react";
 import { SITE } from "@/lib/site";
 
 export default function Footer() {
+  const instagramHandle =
+    "@" + SITE.instagram.replace(/\/+$/, "").split("/").pop();
+
   return (
     <footer className="relative border-t border-white/5 bg-black/40">
       <div className="container grid gap-10 py-14 md:grid-cols-3">
@@ -52,14 +55,23 @@ export default function Footer() {
             <li className="flex items-center gap-2">
               <Instagram className="size-4 text-gold" />
               <a href={SITE.instagram} target="_blank" rel="noreferrer" className="hover:text-primary">
-                @rampagegym
+                {instagramHandle}
               </a>
             </li>
           </ul>
         </div>
       </div>
-      <div className="border-t border-white/5 py-5 text-center text-xs text-muted-foreground">
-        © 2026 {SITE.gym.name}. All rights reserved. • {SITE.eventName}
+      <div className="container flex flex-col items-center justify-between gap-3 border-t border-white/5 py-5 text-xs text-muted-foreground sm:flex-row">
+        <p>
+          © 2026 {SITE.gym.name}. All rights reserved. • {SITE.eventName} •{" "}
+          {SITE.eventDate}
+        </p>
+        <a
+          href="#top"
+          className="inline-flex items-center gap-1.5 rounded-full border border-white/10 px-3 py-1.5 font-semibold transition-colors hover:border-gold/40 hover:text-primary"
+        >
+          <ArrowUp className="size-3.5" /> Back to top
+        </a>
       </div>
     </footer>
   );

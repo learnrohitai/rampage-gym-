@@ -77,19 +77,6 @@ export const SCHEDULE = [
   },
 ];
 
-export const SPONSORS = [
-  "Muscle Fuel",
-  "IronCore Supplements",
-  "Titan Gear",
-  "Pulse Nutrition",
-  "Apex Sports",
-  "Hydra+ Water",
-  "Flex Apparel",
-  "Beast Mode Café",
-  "PowerLift Equipment",
-  "Oxygen Gym Wear",
-];
-
 export const FAQS = [
   {
     q: "Who can participate in Ricela Mr. India?",

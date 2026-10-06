@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Menu, X, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -11,15 +11,29 @@ const LINKS = [
   { href: "/#prizes", label: "Prizes" },
   { href: "/#gallery", label: "Gallery" },
   { href: "/#schedule", label: "Schedule" },
-  { href: "/#sponsors", label: "Sponsors" },
   { href: "/#faq", label: "FAQ" },
 ];
 
 export default function Navbar() {
   const [open, setOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 8);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   return (
-    <header className="fixed inset-x-0 top-0 z-50 border-b border-white/5 bg-background/70 backdrop-blur-xl">
+    <header
+      className={cn(
+        "fixed inset-x-0 top-0 z-50 border-b backdrop-blur-xl transition-colors duration-300",
+        scrolled
+          ? "border-white/10 bg-background/85 shadow-[0_8px_30px_-12px_rgba(0,0,0,0.85)]"
+          : "border-white/5 bg-background/60"
+      )}
+    >
       <div className="container flex h-16 items-center justify-between">
         <Link href="/" className="flex items-center gap-2">
           <span className="grid size-9 place-items-center rounded-lg bg-gradient-to-br from-amber-400 to-red-600 text-black shadow-[0_0_18px_rgba(245,185,66,0.4)]">

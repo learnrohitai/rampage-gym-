@@ -22,7 +22,7 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" className="dark">
+    <html lang="en" id="top" className="dark">
       <body className={`${inter.variable} ${bebas.variable} font-sans`}>
         <Navbar />
         <main className="min-h-screen pt-16">{children}</main>
