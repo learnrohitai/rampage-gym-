@@ -1,4 +1,5 @@
-import { ArrowUp, Instagram, MapPin, Phone, Zap } from "lucide-react";
+import { ArrowUp, Instagram, MapPin, MessageSquare, Phone, Zap } from "lucide-react";
+import Link from "next/link";
 import { SITE } from "@/lib/site";
 
 export default function Footer() {
@@ -30,6 +31,17 @@ export default function Footer() {
           <ul className="mt-4 space-y-3 text-sm text-muted-foreground">
             <li className="flex items-center gap-2">
               <Phone className="size-4 text-gold" /> {SITE.contactPhone}
+            </li>
+            <li className="flex items-center gap-2">
+              <a
+                href={`https://wa.me/91${SITE.contactPhone}`}
+                target="_blank"
+                rel="noreferrer"
+                className="hover:text-primary"
+              >
+                <MessageSquare className="size-4 text-green-400" />
+                Chat on WhatsApp
+              </a>
             </li>
             <li className="flex items-center gap-2">
               <MapPin className="size-4 text-gold" /> {SITE.venue}, {SITE.city}
