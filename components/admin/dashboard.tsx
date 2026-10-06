@@ -358,7 +358,7 @@ export default function Dashboard({ onLogout }: { onLogout: () => void }) {
                         download
                         className="inline-flex items-center gap-1 text-xs font-semibold text-gold hover:underline"
                       >
-                        <Download className="size-3.5" /> JSON
+                        <Download className="size-3.5" /> PDF
                       </a>
                     </td>
                   </tr>

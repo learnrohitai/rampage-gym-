@@ -43,6 +43,7 @@ export async function POST(req: NextRequest) {
   try {
     const formData = await req.formData();
     const receipt = formData.get("receipt");
+    const photo = formData.get("photo");
     const raw: FormBody = {
       name: (formData.get("name") as string) || "",
       phone: (formData.get("phone") as string) || "",
@@ -56,19 +57,12 @@ export async function POST(req: NextRequest) {
       paymentRef: (formData.get("paymentRef") as string) || "",
       notes: formData.get("notes") as string | undefined,
     };
-    const keys: string[] = [];
-    formData.forEach((_, k) => keys.push(String(k)));
-    console.log('[API] received formData keys:', keys);
-    console.log('[API] receipt:', receipt, '| type:', typeof receipt, '| instanceof File:', receipt instanceof File);
-    if (receipt instanceof File) {
-      console.log('[API] receipt.name:', receipt.name, '| size:', receipt.size, '| type:', receipt.type);
-    }
     const parsed = schema.safeParse(raw);
-      if (!parsed.success) {
-        const issues = parsed.error.issues as { path: string[] }[];
-        const first = issues[0];
-        const path = first?.path.reduce((acc, x) => acc + "." + String(x), "").slice(1) || "unknown";
-        return bad(`Invalid field: ${path}`);
+    if (!parsed.success) {
+      const issues = parsed.error.issues as { path: string[] }[];
+      const first = issues[0];
+      const path = first?.path.reduce((acc, x) => acc + "." + String(x), "").slice(1) || "unknown";
+      return bad(`Invalid field: ${path}`);
     }
     const data = parsed.data;
 
@@ -102,10 +96,23 @@ export async function POST(req: NextRequest) {
     const okTypes = ["image/png", "image/jpeg", "image/webp", "application/pdf"];
     if (!okTypes.includes(receipt.type)) return bad("File must be PNG, JPG, WEBP or PDF");
 
+    // Validate athlete photo
+    if (!(photo instanceof File) || photo.size === 0) {
+      return bad("Athlete photo is required");
+    }
+    if (photo.size > 5 * 1024 * 1024) return bad("Photo too large (max 5 MB)");
+    const okPhotoTypes = ["image/png", "image/jpeg", "image/webp"];
+    if (!okPhotoTypes.includes(photo.type)) return bad("Photo must be PNG, JPG or WEBP");
+
     // Upload receipt to Supabase Storage
     const ext = receipt.name.split(".").pop()?.toLowerCase() || "png";
     const storagePath = `receipts/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
-    const { url, path: storedPath } = await uploadReceipt(getReceiptBucket(), receipt, storagePath);
+    const { path: storedPath } = await uploadReceipt(getReceiptBucket(), receipt, storagePath);
+
+    // Upload athlete photo to Supabase Storage (same bucket, photos/ prefix)
+    const photoExt = photo.name.split(".").pop()?.toLowerCase() || "jpg";
+    const photoPath = `photos/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${photoExt}`;
+    const { path: storedPhotoPath } = await uploadReceipt(getReceiptBucket(), photo, photoPath);
 
     const reg = buildRegistration({
       name: data.name.trim(),
@@ -121,6 +128,8 @@ export async function POST(req: NextRequest) {
       paymentStatus: "unverified",
       receiptFile: storedPath,
       receiptOriginalName: receipt.name,
+      photoFile: storedPhotoPath,
+      photoOriginalName: photo.name,
       notes: data.notes || "",
     });
 

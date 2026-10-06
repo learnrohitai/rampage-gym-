@@ -15,6 +15,8 @@ export interface Registration {
   paymentRef: string;
   receiptFile: string | null;
   receiptOriginalName: string | null;
+  photoFile: string | null;
+  photoOriginalName: string | null;
   paymentStatus: "unverified" | "verified" | "rejected";
   status: "pending" | "confirmed" | "rejected";
   createdAt: string;
@@ -124,6 +126,8 @@ export async function addRegistration(reg: Registration): Promise<Registration> 
     payment_ref: reg.paymentRef,
     receipt_file: reg.receiptFile,
     receipt_original_name: reg.receiptOriginalName,
+    photo_file: reg.photoFile,
+    photo_original_name: reg.photoOriginalName,
     payment_status: reg.paymentStatus,
     status: reg.status,
     created_at: reg.createdAt,
@@ -158,6 +162,8 @@ export async function updateRegistration(
     payment_ref: patch.paymentRef,
     receipt_file: patch.receiptFile,
     receipt_original_name: patch.receiptOriginalName,
+    photo_file: patch.photoFile,
+    photo_original_name: patch.photoOriginalName,
     payment_status: patch.paymentStatus,
     status: patch.status,
     created_at: patch.createdAt,
@@ -175,17 +181,17 @@ export async function updateRegistration(
 }
 
 export async function findRegistrationById(id: string): Promise<Registration | null> {
+  // Sanitize: only allow the characters used in reg IDs / internal IDs
+  const safe = id.replace(/[^A-Za-z0-9-]/g, "");
+  if (!safe) return null;
+
   const { data, error } = await supabase
     .from("registrations")
     .select("*")
-    .eq("id", id)
-    .or(`reg_id.eq.${id}`)
-    .single();
+    .or(`id.eq.${safe},reg_id.eq.${safe}`)
+    .maybeSingle();
 
-  if (error) {
-    if ((error as { code?: string }).code === "PGRST116") return null;
-    throw error;
-  }
+  if (error) throw error;
   return data ? snakeToCamel(data) : null;
 }
 
@@ -205,6 +211,8 @@ function snakeToCamel(data: Record<string, unknown>): Registration {
     paymentRef: String(data.payment_ref ?? ""),
     receiptFile: String(data.receipt_file ?? "") || null,
     receiptOriginalName: String(data.receipt_original_name ?? "") || null,
+    photoFile: String(data.photo_file ?? "") || null,
+    photoOriginalName: String(data.photo_original_name ?? "") || null,
     paymentStatus: (data.payment_status as Registration["paymentStatus"] ?? "unverified"),
     status: (data.status as Registration["status"] ?? "pending"),
     createdAt: String(data.created_at ?? ""),

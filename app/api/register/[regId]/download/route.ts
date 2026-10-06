@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { findRegistrationById } from "@/lib/db";
-import { getCategory } from "@/lib/categories";
+import { findRegistrationById, downloadReceipt, getReceiptBucket } from "@/lib/db";
+import { buildRegistrationPdf } from "@/lib/pdf";
 
 export const runtime = "nodejs";
 
@@ -33,46 +33,23 @@ export async function GET(
     );
   }
 
-  const category = getCategory(reg.category);
+  // Fetch the athlete photo for embedding (optional — PDF still builds without it)
+  let photoBytes: Uint8Array | null = null;
+  if (reg.photoFile) {
+    try {
+      photoBytes = await downloadReceipt(getReceiptBucket(), reg.photoFile);
+    } catch {
+      photoBytes = null;
+    }
+  }
 
-  // Build a structured "filled form" view — the same structure the candidate submitted
-  const filledForm = {
-    registrationId: reg.regId,
-    submittedAt: reg.createdAt,
-    status: reg.status,
-    paymentStatus: reg.paymentStatus,
-    section1_personalDetails: {
-      fullName: reg.name,
-      mobileNumber: reg.phone,
-      email: reg.email,
-      dateOfBirth: reg.dob,
-      gender: reg.gender,
-      city: reg.city,
-      gym: reg.gym,
-    },
-    section2_categoryDetails: category
-      ? {
-          category: category.name,
-          fields: category.fields.map((f) => ({
-            label: f.label,
-            value: reg.categoryMeta?.[f.name] ?? "-",
-          })),
-        }
-      : { category: reg.category, fields: [] },
-    section3_paymentProof: {
-      paymentReference: reg.paymentRef,
-      receiptFilename: reg.receiptOriginalName ?? "Not uploaded",
-      receiptStoragePath: reg.receiptFile ?? "Not uploaded",
-    },
-    section4_notes: reg.notes ?? "None",
-  };
+  const pdf = buildRegistrationPdf(reg, { photoBytes });
 
-  const filename = `my-registration-${reg.regId}.json`;
-
-  return new NextResponse(JSON.stringify(filledForm, null, 2), {
+  return new NextResponse(new Uint8Array(pdf), {
     headers: {
-      "Content-Type": "application/json",
-      "Content-Disposition": `attachment; filename="${filename}"`,
+      "Content-Type": "application/pdf",
+      "Content-Disposition": `attachment; filename="my-registration-${reg.regId}.pdf"`,
+      "Cache-Control": "private, no-store",
     },
   });
 }

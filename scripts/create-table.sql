@@ -14,6 +14,8 @@ CREATE TABLE IF NOT EXISTS registrations (
   payment_ref     TEXT NOT NULL,
   receipt_file    TEXT,
   receipt_original_name TEXT,
+  photo_file      TEXT,
+  photo_original_name TEXT,
   payment_status  TEXT NOT NULL DEFAULT 'unverified',
   status          TEXT NOT NULL DEFAULT 'pending',
   created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),

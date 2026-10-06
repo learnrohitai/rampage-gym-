@@ -192,7 +192,7 @@ function DownloadForm({ regId }: { regId: string }) {
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `my-registration-${regId}.json`;
+      a.download = `my-registration-${regId}.pdf`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -236,7 +236,7 @@ function DownloadForm({ regId }: { regId: string }) {
         {downloading ? "Downloading…" : "⬇ Download My Filled Form"}
       </Button>
       <p className="text-[10px] text-muted-foreground">
-        Your form will download as a JSON file with all your details.
+        Downloads a PDF copy of your filled form with your photo.
       </p>
     </div>
   );

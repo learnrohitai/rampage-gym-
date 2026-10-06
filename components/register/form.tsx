@@ -38,6 +38,13 @@ export const registrationSchema = z.object({
   paymentRef: z
     .string()
     .min(6, "Enter the UTR / reference number (min 6 chars)"),
+  photo: z
+    .instanceof(File, { message: "Upload your photo" })
+    .refine((f) => f.size <= 5 * 1024 * 1024, "Max file size 5 MB")
+    .refine(
+      (f) => ["image/png", "image/jpeg", "image/webp"].includes(f.type),
+      "PNG, JPG or WEBP only"
+    ),
   receipt: z
     .instanceof(File, { message: "Upload payment screenshot" })
     .refine((f) => f.size <= 5 * 1024 * 1024, "Max file size 5 MB")
@@ -77,6 +84,7 @@ export default function RegistrationForm({
     getCategory(category)?.fields ?? []
   );
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const photoInputRef = useRef<HTMLInputElement>(null);
 
   const {
     register,
@@ -117,19 +125,29 @@ export default function RegistrationForm({
 
       // Append receipt file — try values.first, then fall back to the DOM input
       let receipt: File | null = null;
-      console.log('[form] values.receipt:', values.receipt, '| type:', typeof values.receipt, '| instanceof File:', values.receipt instanceof File);
-      console.log('[form] fileInputRef.current?.files:', fileInputRef.current?.files);
       if (values.receipt instanceof File) {
         receipt = values.receipt;
       } else if (fileInputRef.current?.files?.[0]) {
         receipt = fileInputRef.current.files[0];
       }
-      console.log('[form] final receipt:', receipt);
       if (!receipt || receipt.size === 0) {
         toast.error('Please select a payment screenshot');
         return;
       }
       fd.append('receipt', receipt);
+
+      // Athlete photo — same fallback pattern as the receipt
+      let photo: File | null = null;
+      if (values.photo instanceof File) {
+        photo = values.photo;
+      } else if (photoInputRef.current?.files?.[0]) {
+        photo = photoInputRef.current.files[0];
+      }
+      if (!photo || photo.size === 0) {
+        toast.error("Please upload your photo");
+        return;
+      }
+      fd.append("photo", photo);
 
       const res = await fetch("/api/register", { method: "POST", body: fd });
       const data = await res.json();
@@ -215,6 +233,20 @@ export default function RegistrationForm({
               <Label>Gym / Academy *</Label>
               <Input placeholder="Your gym name" className="mt-1.5" {...register("gym")} />
               {err(errors.gym?.message)}
+            </div>
+            <div className="sm:col-span-2">
+              <Label>Athlete Photo * (passport-style, used on your event pass)</Label>
+              <Input
+                type="file"
+                accept="image/png,image/jpeg,image/webp"
+                className="mt-1.5 cursor-pointer file:mr-3 file:rounded-md file:border-0 file:bg-gold/15 file:px-3 file:py-1.5 file:text-xs file:font-bold file:text-gold"
+                ref={photoInputRef}
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) setValue("photo", file, { shouldValidate: true });
+                }}
+              />
+              {err(errors.photo?.message as string | undefined)}
             </div>
           </div>
         </fieldset>
