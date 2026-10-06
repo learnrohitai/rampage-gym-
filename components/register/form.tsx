@@ -28,7 +28,12 @@ export const registrationSchema = z.object({
   phone: z
     .string()
     .regex(phoneRegex, "Enter a valid 10-digit Indian mobile number"),
-  email: z.string().email("Enter a valid email"),
+  email: z
+    .string()
+    .refine(
+      (v) => v.trim() === "" || z.string().email().safeParse(v.trim()).success,
+      "Enter a valid email or leave it blank"
+    ),
   dob: z.string().min(1, "Date of birth is required"),
   gender: z.string().min(1, "Select gender"),
   city: z.string().min(2, "Enter your city"),
@@ -37,7 +42,10 @@ export const registrationSchema = z.object({
   categoryMeta: z.record(z.string()),
   paymentRef: z
     .string()
-    .min(6, "Enter the UTR / reference number (min 6 chars)"),
+    .refine(
+      (v) => v.trim() === "" || v.trim().length >= 6,
+      "UTR / reference number must be at least 6 characters (or leave blank)"
+    ),
   photo: z
     .instanceof(File, { message: "Upload your photo" })
     .refine((f) => f.size <= 5 * 1024 * 1024, "Max file size 5 MB")
@@ -203,8 +211,8 @@ export default function RegistrationForm({
               {err(errors.phone?.message)}
             </div>
             <div>
-              <Label>Email *</Label>
-              <Input type="email" placeholder="you@email.com" className="mt-1.5" {...register("email")} />
+              <Label>Email</Label>
+              <Input type="email" placeholder="you@email.com (optional)" className="mt-1.5" {...register("email")} />
               {err(errors.email?.message)}
             </div>
             <div>
@@ -310,8 +318,8 @@ export default function RegistrationForm({
           </legend>
           <div className="grid gap-5 sm:grid-cols-2">
             <div>
-              <Label>UTR / Payment Reference No. *</Label>
-              <Input placeholder="e.g. 4235XXXXXX21" className="mt-1.5" {...register("paymentRef")} />
+              <Label>UTR / Payment Reference No.</Label>
+              <Input placeholder="e.g. 4235XXXXXX21 (optional)" className="mt-1.5" {...register("paymentRef")} />
               {err(errors.paymentRef?.message)}
             </div>
             <div>

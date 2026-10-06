@@ -103,7 +103,7 @@ export const FAQS = [
   },
   {
     q: "How will I know my registration is confirmed?",
-    a: "After paying via the QR code, submit the payment reference number (UTR). The Rampage Gym team verifies it in the dashboard and your status changes to Confirmed.",
+    a: "After paying via the QR code, upload the payment screenshot — and add the payment reference number (UTR) if you have it. The Rampage Gym team verifies it in the dashboard and your status changes to Confirmed.",
   },
   {
     q: "What are the judging criteria?",

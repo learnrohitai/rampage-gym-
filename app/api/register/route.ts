@@ -24,14 +24,21 @@ const phoneRegex = /^[6-9]\d{9}$/;
 const schema = z.object({
   name: z.string().min(3),
   phone: z.string().regex(phoneRegex),
-  email: z.string().email(),
+  // Email and UTR are optional — validate format only when provided
+  email: z.string().refine(
+    (v) => v.trim() === "" || z.string().email().safeParse(v.trim()).success,
+    "Invalid email"
+  ),
   dob: z.string().min(1),
   gender: z.enum(["male", "female", "other"]),
   city: z.string().min(2),
   gym: z.string().min(2),
   category: z.string(),
   categoryMeta: z.string(), // JSON string
-  paymentRef: z.string().min(6),
+  paymentRef: z.string().refine(
+    (v) => v.trim() === "" || v.trim().length >= 6,
+    "UTR must be at least 6 characters"
+  ),
   notes: z.string().optional().nullable(),
 });
 

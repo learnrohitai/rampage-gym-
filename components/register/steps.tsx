@@ -193,7 +193,7 @@ export function StepPayment({ onNext }: { onNext: () => void }) {
               "Tap Pay Now (opens your UPI app) or scan the QR",
               `Pay exactly ₹${SITE.entryFee} for this category`,
               "Take a screenshot of the payment success screen",
-              "Continue to the form — upload screenshot & enter UTR/ref no.",
+              "Continue to the form — upload screenshot (add UTR if you have it)",
             ].map((s, i) => (
               <li key={i} className="flex gap-3">
                 <span className="grid size-5 shrink-0 place-items-center rounded-full bg-gold/15 text-[11px] font-bold text-gold">
