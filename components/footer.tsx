@@ -48,7 +48,7 @@ export default function Footer() {
             </li>
             <li className="flex items-center gap-2">
               <a
-                href="https://www.google.com/maps/search/MGM+Public+School+Dugri+Phase+Ludhiana"
+                href="https://www.google.com/maps/search/MGM+Public+School+Urban+Estate+Phase+1+Dugri+Ludhiana+141002"
                 target="_blank"
                 rel="noreferrer"
                 className="hover:text-primary"
@@ -68,13 +68,13 @@ export default function Footer() {
           {/* Google Maps embed */}
           <div className="mt-6 rounded-xl overflow-hidden border border-white/10 shadow-lg">
             <iframe
-              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d228435.8893849058!2d75.83768157730625!3d30.905962996499563!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x39044b3f63f758e9%3A0x5b93c66f8e1e4b4!2sMGM%20Public%20School%2C%20Dugri%20Phase%2C%20Ludhiana!5e0!3m2!1sen!2sin!4v1698765432100!5m2!1sen!2sin"
+              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d229538.5008906854!2d75.84463607730625!3d30.90637879649956!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x39044b5f68c447b7%3A0x5b93c66f8e1e4b4!2sMGM%20Public%20School%2C%20Urban%20Estate%2C%20Phase%201%2C%20Dugri%2C%20Ludhiana!5e0!3m2!1sen!2sin!4v1700000000000!5m2!1sen!2sin"
               className="h-48 w-full rounded-t-xl"
               style={{ border: 0 }}
               allowFullScreen
               loading="lazy"
               referrerPolicy="no-referrer-when-downgrade"
-              title="MGM Public School Dugri Phase - Google Maps"
+              title="MGM Public School Urban Estate Phase 1 Dugri - Google Maps"
             />
           </div>
         </div>

@@ -9,7 +9,7 @@ export const SITE = {
   eventDate: "18 October 2026",
   // ISO date used by the hero countdown (YYYY-MM-DD)
   eventDateISO: "2026-10-18T00:00:00+05:30",
-  venue: "MGM Public School, Dugri Phase",
+  venue: "MGM Public School, Urban Estate Phase 1, Dugri",
   city: "Ludhiana, Punjab",
   contactPhone: "9814480965",
   instagram: "https://instagram.com/rampage_gym",
