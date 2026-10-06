@@ -22,7 +22,7 @@ export default function Gallery() {
             THE CONTENDERS
           </p>
           <h2 className="mt-3 font-display text-4xl font-black tracking-wide sm:text-5xl">
-            BUILT ON <span className="text-gradient-gold">IRON</span>
+            GALLERY
           </h2>
           <p className="mt-4 text-muted-foreground">
             Year-round grind, one stage. This is what {SITE.eventName} looks

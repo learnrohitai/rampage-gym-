@@ -12,7 +12,7 @@ export const SITE = {
   venue: "MGM Public School, Dugri Phase",
   city: "Ludhiana, Punjab",
   contactPhone: "9814480965",
-  instagram: "https://instagram.com/rampagegym",
+  instagram: "https://instagram.com/rampage_gym",
   registrationOpens: "5 October 2026",
   // ISO date the hero countdown counts down to (YYYY-MM-DD)
   registrationDeadlineISO: "2026-10-10T23:59:00+05:30",

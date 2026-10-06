@@ -30,7 +30,6 @@ export default function Footer() {
           </h4>
           <ul className="mt-4 space-y-2 text-sm text-muted-foreground">
             <li><Link href="/#categories" className="hover:text-primary">Categories</Link></li>
-            <li><Link href="/#gallery" className="hover:text-primary">Gallery</Link></li>
             <li><Link href="/register" className="hover:text-primary">Register</Link></li>
             <li><Link href="/#rules" className="hover:text-primary">Rules</Link></li>
             <li><Link href="/admin" className="hover:text-primary">Organizer Login</Link></li>

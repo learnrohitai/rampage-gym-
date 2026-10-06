@@ -9,7 +9,6 @@ import { cn } from "@/lib/utils";
 const LINKS = [
   { href: "/#categories", label: "Categories" },
   { href: "/#prizes", label: "Prizes" },
-  { href: "/#gallery", label: "Gallery" },
 ];
 
 export default function Navbar() {
