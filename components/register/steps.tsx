@@ -1,14 +1,14 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { ArrowRight, Check, Copy, Dumbbell, Landmark, Shield, Sparkles } from "lucide-react";
+import { ArrowRight, Check, Copy, Dumbbell, Landmark, Shield, Smartphone, Sparkles } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import BorderBeam from "@/components/magicui/border-beam";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { CATEGORIES } from "@/lib/categories";
-import { SITE } from "@/lib/site";
+import { SITE, upiPayUrl } from "@/lib/site";
 import { cn } from "@/lib/utils";
 
 const ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
@@ -98,6 +98,11 @@ export function StepPayment({ onNext }: { onNext: () => void }) {
     }
   };
 
+  const payNow = () => {
+    window.location.href = upiPayUrl();
+    toast.info("Opening your UPI app… If nothing opens, scan the QR instead.");
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, x: -24 }}
@@ -109,8 +114,9 @@ export function StepPayment({ onNext }: { onNext: () => void }) {
         STEP 2 — <span className="text-gradient-gold">PAY ENTRY FEE</span>
       </h2>
       <p className="mt-2 text-sm text-muted-foreground">
-        Scan the QR with any UPI app (GPay / PhonePe / Paytm), then continue to
-        fill the form and submit your payment reference number.
+        Tap <span className="font-semibold text-gold">Pay Now</span> to open your
+        UPI app directly, or scan the QR with GPay / PhonePe / Paytm — then
+        continue to the form and submit your payment reference number.
       </p>
 
       <div className="mt-8 grid items-start gap-8 md:grid-cols-2">
@@ -142,6 +148,20 @@ export function StepPayment({ onNext }: { onNext: () => void }) {
 
         {/* UPI details */}
         <div className="space-y-4">
+          {/* One-tap pay button */}
+          <Button
+            variant="gold"
+            size="lg"
+            className="w-full"
+            onClick={payNow}
+          >
+            <Smartphone /> Pay ₹{SITE.entryFee.toLocaleString("en-IN")} Now
+          </Button>
+          <p className="text-center text-xs text-muted-foreground">
+            Opens GPay / PhonePe / Paytm directly with amount pre-filled — no
+            scanning needed on mobile.
+          </p>
+
           <div className="rounded-xl border border-white/10 bg-card p-5">
             <div className="flex items-center gap-2 text-gold">
               <Landmark className="size-5" />
@@ -170,7 +190,7 @@ export function StepPayment({ onNext }: { onNext: () => void }) {
 
           <ol className="space-y-2 text-sm text-muted-foreground">
             {[
-              "Scan the QR / pay to the UPI ID above",
+              "Tap Pay Now (opens your UPI app) or scan the QR",
               `Pay exactly ₹${SITE.entryFee} for this category`,
               "Take a screenshot of the payment success screen",
               "Continue to the form — upload screenshot & enter UTR/ref no.",

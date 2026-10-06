@@ -24,6 +24,18 @@ export const SITE = {
   qrImage: "/rampage-qr.jpeg",
 };
 
+// One-tap UPI deep link: opens GPay / PhonePe / Paytm with all details pre-filled
+export function upiPayUrl(amount: number = SITE.entryFee, note?: string): string {
+  const params = [
+    `pa=${encodeURIComponent(SITE.upiId)}`,
+    `pn=${encodeURIComponent(SITE.payeeName)}`,
+    `am=${amount}`,
+    "cu=INR",
+    `tn=${encodeURIComponent(note ?? `${SITE.eventName} Entry Fee`)}`,
+  ];
+  return `upi://pay?${params.join("&")}`;
+}
+
 export const PRIZES = [
   {
     place: "1st",
