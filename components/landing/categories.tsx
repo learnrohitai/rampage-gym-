@@ -85,26 +85,6 @@ export default function Categories() {
             );
           })}
         </div>
-
-        {/* Weight class chips */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true }}
-          transition={{ delay: 0.3 }}
-          className="mx-auto mt-12 flex max-w-3xl flex-wrap items-center justify-center gap-2"
-        >
-          {[
-            "Below 60", "60-65", "65-70", "70-75", "75-80", "80-85", "Above 85",
-          ].map((w) => (
-            <span
-              key={w}
-              className="rounded-full border border-gold/25 bg-gold/5 px-4 py-1.5 text-xs font-bold tracking-wider text-gold"
-            >
-              {w} KG
-            </span>
-          ))}
-        </motion.div>
       </div>
     </section>
   );
