@@ -3,6 +3,7 @@ import { Bebas_Neue, Inter } from "next/font/google";
 import { Toaster } from "sonner";
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
+import { I18NProvider } from "@/lib/use-i18n";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
@@ -24,20 +25,22 @@ export default function RootLayout({
   return (
     <html lang="en" id="top" className="dark">
       <body className={`${inter.variable} ${bebas.variable} font-sans`}>
-        <Navbar />
-        <main className="min-h-screen pt-16">{children}</main>
-        <Footer />
-        <Toaster
-          theme="dark"
-          position="top-center"
-          toastOptions={{
-            style: {
-              background: "rgba(15,15,20,0.95)",
-              border: "1px solid rgba(245,185,66,0.3)",
-              color: "#fff",
-            },
-          }}
-        />
+        <I18NProvider>
+          <Navbar />
+          <main className="min-h-screen pt-16">{children}</main>
+          <Footer />
+          <Toaster
+            theme="dark"
+            position="top-center"
+            toastOptions={{
+              style: {
+                background: "rgba(15,15,20,0.95)",
+                border: "1px solid rgba(245,185,66,0.3)",
+                color: "#fff",
+              },
+            }}
+          />
+        </I18NProvider>
       </body>
     </html>
   );

@@ -35,6 +35,7 @@ export async function GET(req: NextRequest) {
         paymentRef: reg.paymentRef,
         paymentStatus: reg.paymentStatus,
         receiptFile: reg.receiptFile,
+        photoFile: reg.photoFile,
       },
     });
   } catch {

@@ -15,13 +15,16 @@ import { SITE } from "@/lib/site";
 function RegisterInner() {
   const params = useSearchParams();
   const [step, setStep] = useState(1);
-  const [category, setCategory] = useState("");
+  const [categories, setCategories] = useState<string[]>([]);
   const [regId, setRegId] = useState<string | null>(null);
 
-  // Pre-select category from ?category= query param
+  // Pre-select category/categories from ?category= query param
   useEffect(() => {
-    const c = params.get("category");
-    if (c) setCategory(c);
+    const q = params.get("category");
+    if (q) {
+      const ids = q.split(",").map((s) => s.trim()).filter(Boolean);
+      if (ids.length) setCategories(ids);
+    }
   }, [params]);
 
   const [copied, setCopied] = useState(false);
@@ -68,7 +71,7 @@ function RegisterInner() {
           <Button asChild variant="outline">
             <Link href="/"><Home /> Back Home</Link>
           </Button>
-          <Button variant="gold" onClick={() => { setRegId(null); setStep(1); setCategory(""); }}>
+          <Button variant="gold" onClick={() => { setRegId(null); setStep(1); setCategories([]); }}>
             Register Another Category
           </Button>
           <Button asChild variant="outline">
@@ -148,19 +151,27 @@ function RegisterInner() {
         {step === 1 && (
           <StepCategory
             key="s1"
-            value={category}
-            onSelect={setCategory}
+            selected={categories}
+            onToggle={(id) => {
+              setCategories((prev) => {
+                const next = prev.includes(id)
+                  ? prev.filter((c) => c !== id)
+                  : prev.length < 3
+                    ? [...prev, id]
+                    : prev;
+                return next;
+              });
+            }}
             onNext={() => setStep(2)}
           />
         )}
         {step === 2 && (
-          <StepPayment key="s2" onNext={() => setStep(3)} />
+          <StepPayment key="s2" categoryCount={categories.length} onNext={() => setStep(3)} />
         )}
         {step === 3 && (
           <RegistrationForm
             key="s3"
-            category={category}
-            onCategoryChange={setCategory}
+            categories={categories}
             onSuccess={(id) => setRegId(id)}
           />
         )}

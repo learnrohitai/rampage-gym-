@@ -1,26 +1,31 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getSession } from "@/lib/auth";
-import { findRegistrationById } from "@/lib/db";
+import { readRegistrations } from "@/lib/db";
 import QRCode from "qrcode";
 
 export const runtime = "nodejs";
 
-function unauthorized() {
-  return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-}
-
 export async function GET(req: NextRequest) {
-  const session = await getSession();
-  if (!session) return unauthorized();
-
   const { searchParams } = new URL(req.url);
-  const regId = searchParams.get("regId");
-  if (!regId) return NextResponse.json({ error: "Missing regId" }, { status: 400 });
+  const regId = searchParams.get("regId")?.trim() ?? "";
+  const phone = searchParams.get("phone")?.trim() ?? "";
+
+  if (!regId || !phone) {
+    return NextResponse.json(
+      { error: "Registration ID and mobile number are required" },
+      { status: 400 }
+    );
+  }
 
   try {
-    const reg = await findRegistrationById(regId);
+    const regs = await readRegistrations();
+    const reg = regs.find(
+      (r) => (r.regId === regId || r.id === regId) && r.phone === phone
+    );
     if (!reg) {
-      return NextResponse.json({ error: "Registration not found" }, { status: 404 });
+      return NextResponse.json(
+        { error: "Invalid registration ID or mobile number" },
+        { status: 404 }
+      );
     }
 
     const baseUrl = req.nextUrl.origin || process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
@@ -49,7 +54,7 @@ export async function GET(req: NextRequest) {
       },
     });
   } catch (err) {
-    console.error("Error generating admin QR code:", err);
-    return NextResponse.json({ error: "Failed to generate QR code" }, { status: 500 });
+    console.error("Error generating public pass QR:", err);
+    return NextResponse.json({ error: "Failed to generate QR pass" }, { status: 500 });
   }
 }

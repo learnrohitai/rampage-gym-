@@ -6,14 +6,22 @@ import { ArrowRight, Dumbbell, Shield, Sparkles } from "lucide-react";
 import BorderBeam from "@/components/magicui/border-beam";
 import { Button } from "@/components/ui/button";
 import { CATEGORIES } from "@/lib/categories";
+import { useT } from "@/lib/use-i18n";
 
 const ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
-  dumbbell: Dumbbell,
-  shield: Shield,
-  sparkles: Sparkles,
+  Dumbbell,
+  Shield,
+  Sparkles,
 };
 
+const FEE_TIERS = [
+  { n: 1, fee: 3500 },
+  { n: 2, fee: 6000 },
+  { n: 3, fee: 8000 },
+];
+
 export default function Categories() {
+  const t = useT();
   return (
     <section id="categories" className="relative py-24">
       <div className="container">
@@ -56,6 +64,16 @@ export default function Categories() {
                 </p>
                 <p className="mt-4 min-h-[72px] text-sm leading-relaxed text-muted-foreground">
                   {cat.desc}
+                </p>
+                <p className="mt-4 font-display text-sm font-bold tracking-widest text-gold">
+                  {t("categories.feeLabel", { one: "₹3,500", two: "₹6,000", three: "₹8,000" })}
+                </p>
+                <p className="mt-1 font-display text-lg font-black text-gradient-gold">
+                  {t("categories.feeTier", {
+                    one: "₹3,500",
+                    two: "₹6,000",
+                    three: "₹8,000",
+                  })}
                 </p>
                 <Button asChild variant="gold" className="mt-6 w-full group/btn">
                   <Link href={`/register?category=${cat.id}`}>

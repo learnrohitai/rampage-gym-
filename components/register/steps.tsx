@@ -7,9 +7,10 @@ import { toast } from "sonner";
 import BorderBeam from "@/components/magicui/border-beam";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { CATEGORIES } from "@/lib/categories";
+import { CATEGORIES, getCategory } from "@/lib/categories";
 import { SITE, upiPayUrl } from "@/lib/site";
 import { cn } from "@/lib/utils";
+import { useT } from "@/lib/use-i18n";
 
 const ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
   dumbbell: Dumbbell,
@@ -17,16 +18,30 @@ const ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
   sparkles: Sparkles,
 };
 
+const FEE_TIERS: Record<number, number> = {
+  1: 3500,
+  2: 6000,
+  3: 8000,
+};
+
+function feeForCount(n: number) {
+  return FEE_TIERS[Math.min(Math.max(n, 1), 3)] ?? 3500;
+}
+
 /* ---------- STEP 1: CATEGORY ---------- */
 export function StepCategory({
-  value,
-  onSelect,
+  selected,
+  onToggle,
   onNext,
 }: {
-  value: string;
-  onSelect: (id: string) => void;
+  selected: string[];
+  onToggle: (id: string) => void;
   onNext: () => void;
 }) {
+  const t = useT();
+  const count = selected.length;
+  const fee = feeForCount(count);
+
   return (
     <motion.div
       initial={{ opacity: 0, x: -24 }}
@@ -38,18 +53,34 @@ export function StepCategory({
         STEP 1 — <span className="text-gradient-gold">CHOOSE CATEGORY</span>
       </h2>
       <p className="mt-2 text-sm text-muted-foreground">
-        The registration form adapts to the category you pick.
+        {t("steps.category.desc")}
+      </p>
+
+      <p className="mt-3 text-xs font-bold tracking-widest text-gold/80">
+        {count === 1
+          ? t("steps.category.selected", { count: "1" })
+          : count === 0
+            ? t("steps.category.selected", { count: "0" })
+            : t("steps.category.selectedPlural", { count: String(count) })}
+      </p>
+
+      <p className="mt-1 text-xs text-muted-foreground">
+        {t("steps.category.hint", {
+          one: "₹3,500 (1)",
+          two: "₹6,000 (2)",
+          three: "₹8,000 (3)",
+        })}
       </p>
 
       <div className="mt-8 grid gap-4 md:grid-cols-3">
         {CATEGORIES.map((cat) => {
           const Icon = ICONS[cat.icon] ?? Dumbbell;
-          const active = value === cat.id;
+          const active = selected.includes(cat.id);
           return (
             <button
               type="button"
               key={cat.id}
-              onClick={() => onSelect(cat.id)}
+              onClick={() => onToggle(cat.id)}
               className={cn(
                 "group relative overflow-hidden rounded-2xl border p-6 text-left transition-all duration-300",
                 active
@@ -75,8 +106,14 @@ export function StepCategory({
       </div>
 
       <div className="mt-8 flex justify-end">
-        <Button variant="gold" size="lg" disabled={!value} onClick={onNext}>
-          Continue to Payment <ArrowRight />
+        <Button
+          variant="gold"
+          size="lg"
+          disabled={count === 0}
+          onClick={onNext}
+          className="shadow-[0_0_30px_-8px_rgba(245,185,66,0.5)]"
+        >
+          {t("steps.category.continue")} <ArrowRight />
         </Button>
       </div>
     </motion.div>
@@ -84,14 +121,22 @@ export function StepCategory({
 }
 
 /* ---------- STEP 2: PAYMENT (QR) ---------- */
-export function StepPayment({ onNext }: { onNext: () => void }) {
+export function StepPayment({
+  categoryCount,
+  onNext,
+}: {
+  categoryCount: number;
+  onNext: () => void;
+}) {
+  const t = useT();
   const [copied, setCopied] = useState(false);
+  const fee = feeForCount(categoryCount);
 
   const copyUpi = async () => {
     try {
       await navigator.clipboard.writeText(SITE.upiId);
       setCopied(true);
-      toast.success("UPI ID copied");
+      toast.success(t("steps.payment.copied", { fee: fee.toLocaleString("en-IN") }));
       setTimeout(() => setCopied(false), 2000);
     } catch {
       toast.error("Could not copy — please note it down");
@@ -99,9 +144,17 @@ export function StepPayment({ onNext }: { onNext: () => void }) {
   };
 
   const payNow = () => {
-    window.location.href = upiPayUrl();
+    window.location.href = upiPayUrl(fee);
     toast.info("Opening your UPI app… If nothing opens, scan the QR instead.");
   };
+
+  const feeLabel = categoryCount === 1
+    ? t("steps.payment.feeSingle", { fee: fee.toLocaleString("en-IN") })
+    : t("steps.payment.feeTier", {
+        one: "₹3,500",
+        two: "₹6,000",
+        three: "₹8,000",
+      });
 
   return (
     <motion.div
@@ -114,9 +167,9 @@ export function StepPayment({ onNext }: { onNext: () => void }) {
         STEP 2 — <span className="text-gradient-gold">PAY ENTRY FEE</span>
       </h2>
       <p className="mt-2 text-sm text-muted-foreground">
-        Tap <span className="font-semibold text-gold">Pay Now</span> to open your
-        UPI app directly, or scan the QR with GPay / PhonePe / Paytm — then
-        continue to the form and submit your payment reference number.
+        {categoryCount === 1
+          ? t("steps.payment.descSingle")
+          : t("steps.payment.descMulti", { count: String(categoryCount), fee: fee.toLocaleString("en-IN") })}
       </p>
 
       <div className="mt-8 grid items-start gap-8 md:grid-cols-2">
@@ -124,13 +177,19 @@ export function StepPayment({ onNext }: { onNext: () => void }) {
         <div className="relative mx-auto w-full max-w-sm overflow-hidden rounded-2xl border border-gold/30 bg-card p-8 text-center">
           <BorderBeam size={70} duration={7} />
           <p className="font-display text-lg font-bold tracking-widest text-gold">
-            ENTRY FEE
+            {t("steps.payment.feeHeading")}
           </p>
           <p className="font-display text-5xl font-black text-gradient-gold">
-            ₹{SITE.entryFee.toLocaleString("en-IN")}
+            ₹{fee.toLocaleString("en-IN")}
           </p>
           <p className="mt-1 text-xs text-muted-foreground">
-            per category entry • non-refundable
+            {categoryCount === 1
+              ? t("steps.payment.feeSinglePer", { fee: fee.toLocaleString("en-IN") })
+              : t("steps.payment.feeTierNote", {
+                  one: "₹3,500",
+                  two: "₹6,000",
+                  three: "₹8,000",
+                })}
           </p>
 
           <div className="relative mx-auto mt-6 size-52 overflow-hidden rounded-xl border border-white/10 bg-white p-2">
@@ -142,7 +201,7 @@ export function StepPayment({ onNext }: { onNext: () => void }) {
             />
           </div>
           <p className="mt-3 text-xs text-muted-foreground">
-            Scan with any UPI app
+            {t("steps.payment.qrScan")}
           </p>
         </div>
 
@@ -155,46 +214,45 @@ export function StepPayment({ onNext }: { onNext: () => void }) {
             className="w-full"
             onClick={payNow}
           >
-            <Smartphone /> Pay ₹{SITE.entryFee.toLocaleString("en-IN")} Now
+            <Smartphone /> {t("steps.payment.payNow", { fee: fee.toLocaleString("en-IN") })}
           </Button>
           <p className="text-center text-xs text-muted-foreground">
-            Opens GPay / PhonePe / Paytm directly with amount pre-filled — no
-            scanning needed on mobile.
+            {t("steps.payment.openApp")}
           </p>
 
           <div className="rounded-xl border border-white/10 bg-card p-5">
             <div className="flex items-center gap-2 text-gold">
               <Landmark className="size-5" />
               <span className="font-display text-lg font-bold tracking-widest">
-                UPI DETAILS
+                {t("steps.payment.upiHeading")}
               </span>
             </div>
             <div className="mt-4 space-y-3 text-sm">
               <div className="flex items-center justify-between gap-3 rounded-lg bg-white/5 px-4 py-3">
+                <p className="text-xs text-muted-foreground">{t("steps.payment.payee")}</p>
                 <div>
-                  <p className="text-xs text-muted-foreground">Payee</p>
                   <p className="font-semibold">{SITE.payeeName}</p>
                 </div>
               </div>
               <div className="flex items-center justify-between gap-3 rounded-lg bg-white/5 px-4 py-3">
+                <p className="text-xs text-muted-foreground">{t("steps.payment.upiId")}</p>
                 <div>
-                  <p className="text-xs text-muted-foreground">UPI ID</p>
                   <p className="font-mono font-semibold">{SITE.upiId}</p>
                 </div>
                 <Button size="sm" variant="outline" onClick={copyUpi}>
-                  {copied ? <Check /> : <Copy />} {copied ? "Copied" : "Copy"}
+                  {copied ? <Check /> : <Copy />} {copied ? t("steps.payment.copied") : t("steps.payment.copy")}
                 </Button>
               </div>
             </div>
           </div>
 
           <ol className="space-y-2 text-sm text-muted-foreground">
-            {[
-              "Tap Pay Now (opens your UPI app) or scan the QR",
-              `Pay exactly ₹${SITE.entryFee} for this category`,
-              "Take a screenshot of the payment success screen",
-              "Continue to the form — upload screenshot (add UTR if you have it)",
-            ].map((s, i) => (
+            {t("steps.payment.instructions", {
+              fee: fee.toLocaleString("en-IN"),
+            })
+              .split("\n")
+              .filter(Boolean)
+              .map((s: string, i: number) => (
               <li key={i} className="flex gap-3">
                 <span className="grid size-5 shrink-0 place-items-center rounded-full bg-gold/15 text-[11px] font-bold text-gold">
                   {i + 1}
@@ -206,7 +264,7 @@ export function StepPayment({ onNext }: { onNext: () => void }) {
 
           <div className="flex justify-end pt-2">
             <Button variant="gold" size="lg" onClick={onNext}>
-              I Have Paid — Continue <ArrowRight />
+              {t("steps.payment.continue")} <ArrowRight />
             </Button>
           </div>
         </div>

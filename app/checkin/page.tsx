@@ -148,17 +148,17 @@ export default function CheckInPage() {
   };
 
   const handleDownload = async () => {
-    if (!data?.receiptFile) return;
-    const url = `/api/pass/receipt?regId=${encodeURIComponent(
+    if (!data) return;
+    const url = `/api/pass/qr?regId=${encodeURIComponent(
       data.regId
-    )}&phone=${encodeURIComponent(phone.trim())}`;
+    )}&phone=${encodeURIComponent(phone.trim())}&download=1`;
     const link = document.createElement("a");
     link.href = url;
     link.download = `qr-pass-${data.regId}.png`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    toast.success("Pass downloaded!");
+    toast.success("QR Pass downloaded!");
   };
 
   if (loading) {
@@ -309,17 +309,29 @@ export default function CheckInPage() {
           ) : (
             <div>
               <div className="text-center">
-                <QrCode className="size-12 text-gold mx-auto" />
-                <h2 className="mt-4 font-display text-2xl font-black">
+                <div className="mx-auto my-3 flex justify-center">
+                  <div className="rounded-2xl border-2 border-gold/40 bg-white p-3 shadow-2xl">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={`/api/pass/qr?regId=${encodeURIComponent(data.regId)}&phone=${encodeURIComponent(phone.trim())}`}
+                      alt={`QR Pass for ${data.regId}`}
+                      className="size-44 object-contain"
+                    />
+                  </div>
+                </div>
+                <h2 className="mt-4 font-display text-2xl font-black text-gold">
                   {data.regId}
                 </h2>
-                <p className="text-sm text-muted-foreground">
-                  {data.name} — {data.category}
+                <p className="text-sm text-foreground font-semibold">
+                  {data.name}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Category: {data.category}
                 </p>
               </div>
 
-              <div className="mt-6 text-center text-sm text-muted-foreground">
-                <p className="font-mono">{data.paymentRef}</p>
+              <div className="mt-4 text-center text-sm text-muted-foreground">
+                <p className="font-mono text-xs">Payment Ref: {data.paymentRef}</p>
                 <Button
                   size="sm"
                   variant="link"
@@ -330,15 +342,22 @@ export default function CheckInPage() {
                 </Button>
               </div>
 
-              <div className="mt-6 text-center">
+              <div className="mt-6 flex flex-col items-center gap-3">
                 <Button
                   variant="gold"
-                  className="text-base px-8"
+                  className="text-base px-8 w-full max-w-xs"
                   onClick={handleDownload}
                 >
-                  <Download className="size-4" />
-                  Download QR Pass
+                  <Download className="size-4 mr-2" />
+                  Download QR Pass (PNG)
                 </Button>
+                <a
+                  href={`/api/register/${encodeURIComponent(data.regId)}/download?phone=${encodeURIComponent(phone.trim())}`}
+                  download
+                  className="inline-flex items-center justify-center gap-2 text-xs font-semibold text-gold hover:underline"
+                >
+                  <Download className="size-3.5" /> Download Official Entry Form (PDF)
+                </a>
                 <p className="mt-2 text-xs text-muted-foreground">
                   Save this pass for check-in. Payment will be verified by the organizer.
                 </p>

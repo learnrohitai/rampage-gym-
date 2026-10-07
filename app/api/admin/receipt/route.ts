@@ -45,11 +45,14 @@ export async function GET(req: NextRequest) {
     const buffer = await downloadReceipt(bucket, pathToServe);
     const ext = pathToServe.split("/").pop()?.split(".").pop()?.toLowerCase() ?? "";
 
+    const isDownload = req.nextUrl.searchParams.get("download") === "1";
     return new NextResponse(new Uint8Array(buffer), {
       headers: {
         "Content-Type": MIME_BY_EXT[ext] ?? "application/octet-stream",
         "Cache-Control": "private, no-store",
-        "Content-Disposition": `attachment; filename=\"${originalName}.${ext}\"`,
+        "Content-Disposition": isDownload
+          ? `attachment; filename="${originalName}.${ext}"`
+          : `inline; filename="${originalName}.${ext}"`,
       },
     });
   } catch {

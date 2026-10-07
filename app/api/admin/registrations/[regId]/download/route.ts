@@ -32,7 +32,8 @@ export async function GET(
     }
   }
 
-  const pdf = buildRegistrationPdf(reg, { photoBytes });
+  const siteUrl = req.nextUrl.origin || process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+  const pdf = await buildRegistrationPdf(reg, { photoBytes, siteUrl });
 
   return new NextResponse(new Uint8Array(pdf), {
     headers: {

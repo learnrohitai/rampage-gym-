@@ -12,8 +12,10 @@ import {
   FileSpreadsheet,
   Filter,
   LogOut,
+  QrCode,
   RefreshCw,
   Search,
+  User,
   UserX,
   Users,
   XCircle,
@@ -50,7 +52,7 @@ export default function Dashboard({ onLogout }: { onLogout: () => void }) {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [catFilter, setCatFilter] = useState("all");
-  const [viewing, setViewing] = useState<Registration | null>(null);
+  const [viewing, setViewing] = useState<{ reg: Registration; tab: "photo" | "receipt" | "qr" } | null>(null);
 
 
   const load = useCallback(async () => {
@@ -282,6 +284,14 @@ export default function Dashboard({ onLogout }: { onLogout: () => void }) {
                       <p className="text-xs text-muted-foreground">
                         {r.city} • {r.gym}
                       </p>
+                      {r.photoFile && (
+                        <button
+                          onClick={() => setViewing({ reg: r, tab: "photo" })}
+                          className="mt-1 inline-flex items-center gap-1 text-xs font-semibold text-gold hover:underline"
+                        >
+                          <User className="size-3" /> View photo
+                        </button>
+                      )}
                     </td>
                     <td className="px-4 py-4">
                       <Badge variant="outline">{categoryLabel(r)}</Badge>
@@ -294,7 +304,7 @@ export default function Dashboard({ onLogout }: { onLogout: () => void }) {
                       <p className="font-mono text-xs">{r.paymentRef}</p>
                       {r.receiptFile && (
                         <button
-                          onClick={() => setViewing(r)}
+                          onClick={() => setViewing({ reg: r, tab: "receipt" })}
                           className="mt-1 inline-flex items-center gap-1 text-xs font-semibold text-gold hover:underline"
                         >
                           <ExternalLink className="size-3" /> View receipt
@@ -353,13 +363,24 @@ export default function Dashboard({ onLogout }: { onLogout: () => void }) {
                       </div>
                     </td>
                     <td className="px-4 py-4 text-right">
-                      <a
-                        href={`/api/admin/registrations/${r.regId}/download`}
-                        download
-                        className="inline-flex items-center gap-1 text-xs font-semibold text-gold hover:underline"
-                      >
-                        <Download className="size-3.5" /> PDF
-                      </a>
+                      <div className="flex items-center justify-end gap-1.5">
+                        <a
+                          href={`/api/admin/registrations/${r.regId}/download`}
+                          download
+                          title="Download Official Form (includes Athlete Photo & QR)"
+                          className="inline-flex items-center gap-1 rounded-md border border-gold/40 bg-gold/10 px-2 py-1 text-xs font-semibold text-gold hover:bg-gold/20"
+                        >
+                          <Download className="size-3.5" /> PDF
+                        </a>
+                        <a
+                          href={`/api/admin/qrcode?regId=${r.regId}&download=1`}
+                          download
+                          title="Download Athlete QR Code PNG"
+                          className="inline-flex items-center gap-1 rounded-md border border-white/20 bg-white/5 px-2 py-1 text-xs font-medium text-muted-foreground hover:bg-white/10 hover:text-foreground"
+                        >
+                          <QrCode className="size-3.5" /> QR
+                        </a>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -370,12 +391,11 @@ export default function Dashboard({ onLogout }: { onLogout: () => void }) {
 
       <p className="mt-4 flex items-center gap-2 text-xs text-muted-foreground">
         <Download className="size-3.5" />
-        Downloads include all registrations with category details. Receipt files
-        are stored privately on the server.
+        Downloads include all registrations with category details. PDF files include original athlete photo and verification QR pass.
       </p>
 
-      {/* Receipt modal */}
-      {viewing && <ReceiptModal reg={viewing} onClose={() => setViewing(null)} />}
+      {/* Media modal */}
+      {viewing && <AthleteMediaModal item={viewing} onClose={() => setViewing(null)} />}
     </div>
   );
 }
@@ -390,8 +410,17 @@ function categoryLabel(r: Registration) {
   return cat.name;
 }
 
-function ReceiptModal({ reg, onClose }: { reg: Registration; onClose: () => void }) {
+function AthleteMediaModal({
+  item,
+  onClose,
+}: {
+  item: { reg: Registration; tab: "photo" | "receipt" | "qr" };
+  onClose: () => void;
+}) {
+  const [tab, setTab] = useState<"photo" | "receipt" | "qr">(item.tab);
+  const reg = item.reg;
   const isPdf = reg.receiptFile?.endsWith(".pdf");
+
   return (
     <div
       className="fixed inset-0 z-50 grid place-items-center bg-black/80 p-4 backdrop-blur-sm"
@@ -407,35 +436,147 @@ function ReceiptModal({ reg, onClose }: { reg: Registration; onClose: () => void
               {reg.regId} — {reg.name.toUpperCase()}
             </h3>
             <p className="text-xs text-muted-foreground">
-              Ref: <span className="font-mono">{reg.paymentRef}</span> • {categoryLabel(reg)}
+              {categoryLabel(reg)} • Status: {reg.status.toUpperCase()}
             </p>
           </div>
           <Button variant="ghost" size="icon" onClick={onClose}>
             <XCircle className="size-5" />
           </Button>
         </div>
-        <div className="max-h-[65vh] overflow-auto p-6">
-          {isPdf ? (
-            <iframe
-              src={`/api/admin/receipt?file=${reg.receiptFile}`}
-              className="h-[60vh] w-full rounded-lg"
-              title="Receipt PDF"
-            />
-          ) : (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={`/api/admin/receipt?file=${reg.receiptFile}`}
-              alt="Payment receipt"
-              className="mx-auto max-h-[60vh] rounded-lg object-contain"
-            />
+
+        {/* Tab switcher */}
+        <div className="flex border-b border-white/10 bg-white/[0.02] px-6 pt-2">
+          {reg.photoFile && (
+            <button
+              onClick={() => setTab("photo")}
+              className={cn(
+                "flex items-center gap-2 border-b-2 px-4 py-2 text-xs font-semibold transition-colors",
+                tab === "photo"
+                  ? "border-gold text-gold"
+                  : "border-transparent text-muted-foreground hover:text-foreground"
+              )}
+            >
+              <User className="size-3.5" /> Athlete Photo
+            </button>
+          )}
+          {reg.receiptFile && (
+            <button
+              onClick={() => setTab("receipt")}
+              className={cn(
+                "flex items-center gap-2 border-b-2 px-4 py-2 text-xs font-semibold transition-colors",
+                tab === "receipt"
+                  ? "border-gold text-gold"
+                  : "border-transparent text-muted-foreground hover:text-foreground"
+              )}
+            >
+              <ExternalLink className="size-3.5" /> Payment Receipt
+            </button>
+          )}
+          <button
+            onClick={() => setTab("qr")}
+            className={cn(
+              "flex items-center gap-2 border-b-2 px-4 py-2 text-xs font-semibold transition-colors",
+              tab === "qr"
+                ? "border-gold text-gold"
+                : "border-transparent text-muted-foreground hover:text-foreground"
+            )}
+          >
+            <QrCode className="size-3.5" /> Check-In QR Pass
+          </button>
+        </div>
+
+        {/* Tab Content */}
+        <div className="max-h-[60vh] overflow-auto p-6">
+          {tab === "photo" && reg.photoFile && (
+            <div className="text-center">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={`/api/admin/receipt?file=${encodeURIComponent(reg.photoFile)}`}
+                alt={`Photo of ${reg.name}`}
+                className="mx-auto max-h-[50vh] rounded-xl border border-white/10 object-contain shadow-2xl"
+              />
+              <p className="mt-3 text-xs text-muted-foreground font-mono">
+                {reg.photoOriginalName || reg.photoFile}
+              </p>
+            </div>
+          )}
+
+          {tab === "receipt" && reg.receiptFile && (
+            <div>
+              {isPdf ? (
+                <iframe
+                  src={`/api/admin/receipt?file=${encodeURIComponent(reg.receiptFile)}`}
+                  className="h-[50vh] w-full rounded-lg"
+                  title="Receipt PDF"
+                />
+              ) : (
+                <div className="text-center">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={`/api/admin/receipt?file=${encodeURIComponent(reg.receiptFile)}`}
+                    alt="Payment receipt"
+                    className="mx-auto max-h-[50vh] rounded-xl border border-white/10 object-contain shadow-2xl"
+                  />
+                  <p className="mt-3 text-xs text-muted-foreground">
+                    Ref / UTR: <span className="font-mono text-gold">{reg.paymentRef}</span>
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+
+          {tab === "qr" && (
+            <div className="text-center">
+              <div className="mx-auto my-2 inline-block rounded-2xl border-2 border-gold/40 bg-white p-3 shadow-2xl">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={`/api/admin/qrcode?regId=${encodeURIComponent(reg.regId)}`}
+                  alt={`QR Pass for ${reg.regId}`}
+                  className="size-48 object-contain"
+                />
+              </div>
+              <p className="mt-2 font-display text-lg font-bold text-gold">{reg.regId}</p>
+              <p className="text-xs text-muted-foreground">
+                Official Check-In QR Pass for venue verification
+              </p>
+            </div>
           )}
         </div>
-        <div className="flex justify-end gap-2 border-t border-white/10 px-6 py-4">
-          <a href={`/api/admin/receipt?file=${reg.receiptFile}`} target="_blank" rel="noreferrer">
-            <Button variant="outline" size="sm">
-              <ExternalLink /> Open Original
+
+        {/* Footer Actions */}
+        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-white/10 bg-white/[0.02] px-6 py-4">
+          <a
+            href={`/api/admin/registrations/${reg.regId}/download`}
+            download
+          >
+            <Button variant="gold" size="sm">
+              <Download className="size-3.5 mr-1.5" /> Download PDF Form (Photo + QR)
             </Button>
           </a>
+
+          <div className="flex gap-2">
+            {tab === "photo" && reg.photoFile && (
+              <a href={`/api/admin/receipt?file=${encodeURIComponent(reg.photoFile)}&download=1`} download>
+                <Button variant="outline" size="sm">
+                  <Download className="size-3.5 mr-1" /> Save Photo
+                </Button>
+              </a>
+            )}
+            {tab === "receipt" && reg.receiptFile && (
+              <a href={`/api/admin/receipt?file=${encodeURIComponent(reg.receiptFile)}`} target="_blank" rel="noreferrer">
+                <Button variant="outline" size="sm">
+                  <ExternalLink className="size-3.5 mr-1" /> Open Original
+                </Button>
+              </a>
+            )}
+            {tab === "qr" && (
+              <a href={`/api/admin/qrcode?regId=${encodeURIComponent(reg.regId)}&download=1`} download>
+                <Button variant="outline" size="sm">
+                  <Download className="size-3.5 mr-1" /> Save QR PNG
+                </Button>
+              </a>
+            )}
+          </div>
         </div>
       </div>
     </div>

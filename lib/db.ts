@@ -71,11 +71,33 @@ export async function uploadReceipt(
  * Download a receipt file from Supabase Storage as a buffer.
  */
 export async function downloadReceipt(bucket: string, storagePath: string): Promise<Buffer> {
-  const { data, error } = await supabase.storage.from(bucket).download(storagePath);
+  const cleanPath = storagePath.replace(/^\/+/, "");
+  if (cleanPath.startsWith("http://") || cleanPath.startsWith("https://")) {
+    const res = await fetch(cleanPath);
+    if (!res.ok) throw new Error(`Failed to fetch file from URL: ${res.statusText}`);
+    return Buffer.from(await res.arrayBuffer());
+  }
+
+  const { data, error } = await supabase.storage.from(bucket).download(cleanPath);
+  if (!error && data) {
+    return Buffer.from(await data.arrayBuffer());
+  }
+
+  // Fallback: try public URL
+  const { data: urlData } = supabase.storage.from(bucket).getPublicUrl(cleanPath);
+  if (urlData?.publicUrl) {
+    try {
+      const res = await fetch(urlData.publicUrl);
+      if (res.ok) {
+        return Buffer.from(await res.arrayBuffer());
+      }
+    } catch {
+      // Ignore and proceed to error throwing below
+    }
+  }
+
   if (error) throw error;
-  if (!data) throw new Error("File not found in storage");
-  const buf = Buffer.from(await data.arrayBuffer());
-  return buf;
+  throw new Error("File not found in storage");
 }
 
 /**

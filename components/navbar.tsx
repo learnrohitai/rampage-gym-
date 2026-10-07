@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Menu, X, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { useLang } from "@/lib/use-i18n";
 
 const LINKS = [
   { href: "/#categories", label: "Categories" },
@@ -64,6 +65,7 @@ export default function Navbar() {
           <Button asChild variant="gold" size="sm">
             <Link href="/register">Register Now</Link>
           </Button>
+          <LanguageToggle />
         </div>
 
         <button
@@ -100,5 +102,25 @@ export default function Navbar() {
         </div>
       )}
     </header>
+  );
+}
+
+function LanguageToggle() {
+  const { lang, setLang, allLangs } = useLang();
+  return (
+    <div className="flex items-center gap-1">
+      {allLangs.map((l: { code: "en" | "hi" | "pa"; label: string }) => (
+        <Button
+          key={l.code}
+          variant={lang === l.code ? "gold" : "outline"}
+          size="sm"
+          className="font-bold uppercase tracking-wider"
+          onClick={() => setLang(l.code)}
+          aria-label={`Language ${l.label}`}
+        >
+          {l.label}
+        </Button>
+      ))}
+    </div>
   );
 }

@@ -3,20 +3,6 @@ import { z } from "zod";
 import { addRegistration, buildRegistration, uploadReceipt, getReceiptBucket } from "@/lib/db";
 import { CATEGORIES } from "@/lib/categories";
 
-interface FormBody {
-  name: string;
-  phone: string;
-  email: string;
-  dob: string;
-  gender: string;
-  city: string;
-  gym: string;
-  category: string;
-  categoryMeta: string;
-  paymentRef: string;
-  notes: string | undefined;
-}
-
 export const runtime = "nodejs";
 
 const phoneRegex = /^[6-9]\d{9}$/;
@@ -33,8 +19,8 @@ const schema = z.object({
   gender: z.enum(["male", "female", "other"]),
   city: z.string().min(2),
   gym: z.string().min(2),
-  category: z.string(),
-  categoryMeta: z.string(), // JSON string
+  categories: z.string(), // JSON array
+  categoryMeta: z.string(), // JSON object keyed by category id
   paymentRef: z.string().refine(
     (v) => v.trim() === "" || v.trim().length >= 6,
     "UTR must be at least 6 characters"
@@ -51,7 +37,7 @@ export async function POST(req: NextRequest) {
     const formData = await req.formData();
     const receipt = formData.get("receipt");
     const photo = formData.get("photo");
-    const raw: FormBody = {
+    const raw = {
       name: (formData.get("name") as string) || "",
       phone: (formData.get("phone") as string) || "",
       email: (formData.get("email") as string) || "",
@@ -59,7 +45,7 @@ export async function POST(req: NextRequest) {
       gender: (formData.get("gender") as string) || "",
       city: (formData.get("city") as string) || "",
       gym: (formData.get("gym") as string) || "",
-      category: (formData.get("category") as string) || "",
+      categories: (formData.get("categories") as string) || "[]",
       categoryMeta: (formData.get("categoryMeta") as string) || "{}",
       paymentRef: (formData.get("paymentRef") as string) || "",
       notes: formData.get("notes") as string | undefined,
@@ -73,75 +59,120 @@ export async function POST(req: NextRequest) {
     }
     const data = parsed.data;
 
-    // Validate category
-    const category = CATEGORIES.find((c) => c.id === data.category);
-    if (!category) return bad("Unknown category selected");
-
-    // Validate dynamic category fields are present
-    let meta: Record<string, string> = {};
+    // Parse categories (JSON array)
+    let catIds: string[] = [];
     try {
-      meta = JSON.parse(data.categoryMeta || "{}");
+      catIds = JSON.parse(data.categories || "[]");
     } catch {
-      return bad("Invalid category data");
+      return bad("Invalid category list");
     }
-    for (const f of category.fields) {
-      if (!meta[f.name] || String(meta[f.name]).trim() === "") {
-        return bad(`Missing required field: ${f.label}`);
-      }
-    }
-    // Masters must be 35+
-    if (category.id === "masters") {
-      const age = parseInt(meta.age, 10);
-      if (isNaN(age) || age < 35) return bad("Masters category requires age 35 or above");
+    if (!catIds.length) return bad("Select at least one category");
+
+    // Parse categoryMeta (JSON object keyed by category ID)
+    let rawMetaObj: Record<string, unknown> = {};
+    try {
+      rawMetaObj = JSON.parse(data.categoryMeta || "{}");
+    } catch {
+      rawMetaObj = {};
     }
 
-    // Validate receipt file
+    // Validate each category + its meta
+    const metas: Record<string, Record<string, string>> = {};
+    for (const catId of catIds) {
+      const cat = CATEGORIES.find((c) => c.id === catId);
+      if (!cat) return bad(`Unknown category: ${catId}`);
+      let meta: Record<string, string> = {};
+      const catMetaRaw = rawMetaObj[catId];
+      if (typeof catMetaRaw === "object" && catMetaRaw !== null) {
+        meta = Object.fromEntries(
+          Object.entries(catMetaRaw as Record<string, unknown>).map(([k, v]) => [k, String(v ?? "")])
+        );
+      } else if (typeof catMetaRaw === "string") {
+        try {
+          meta = JSON.parse(catMetaRaw);
+        } catch {
+          meta = {};
+        }
+      }
+      for (const f of cat.fields) {
+        if (!meta[f.name] || String(meta[f.name]).trim() === "") {
+          return bad(`Missing required field: ${f.label} (${cat.name})`);
+        }
+      }
+      if (catId === "masters") {
+        const age = parseInt(meta.age, 10);
+        if (isNaN(age) || age < 35) return bad("Masters category requires age 35 or above");
+      }
+      metas[catId] = meta;
+    }
+
+    // Validate receipt file — hard 1 MB cap to protect storage
     if (!(receipt instanceof File) || receipt.size === 0) {
       return bad("Payment screenshot is required");
     }
-    if (receipt.size > 5 * 1024 * 1024) return bad("File too large (max 5 MB)");
+    if (receipt.size > 1024 * 1024) {
+      return bad("Payment screenshot must be 1 MB or smaller (images are compressed automatically)");
+    }
     const okTypes = ["image/png", "image/jpeg", "image/webp", "application/pdf"];
     if (!okTypes.includes(receipt.type)) return bad("File must be PNG, JPG, WEBP or PDF");
 
-    // Validate athlete photo
+    // Validate athlete photo — hard 1 MB cap to protect storage
     if (!(photo instanceof File) || photo.size === 0) {
       return bad("Athlete photo is required");
     }
-    if (photo.size > 5 * 1024 * 1024) return bad("Photo too large (max 5 MB)");
+    if (photo.size > 1024 * 1024) {
+      return bad("Photo must be 1 MB or smaller (images are compressed automatically)");
+    }
     const okPhotoTypes = ["image/png", "image/jpeg", "image/webp"];
     if (!okPhotoTypes.includes(photo.type)) return bad("Photo must be PNG, JPG or WEBP");
 
-    // Upload receipt to Supabase Storage
+    // Upload receipt to Supabase Storage (shared across all selected categories)
     const ext = receipt.name.split(".").pop()?.toLowerCase() || "png";
     const storagePath = `receipts/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
     const { path: storedPath } = await uploadReceipt(getReceiptBucket(), receipt, storagePath);
 
-    // Upload athlete photo to Supabase Storage (same bucket, photos/ prefix)
+    // Upload athlete photo to Supabase Storage (shared across all selected categories)
     const photoExt = photo.name.split(".").pop()?.toLowerCase() || "jpg";
     const photoPath = `photos/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${photoExt}`;
     const { path: storedPhotoPath } = await uploadReceipt(getReceiptBucket(), photo, photoPath);
 
-    const reg = buildRegistration({
-      name: data.name.trim(),
-      phone: data.phone,
-      email: data.email.toLowerCase(),
-      dob: data.dob,
-      gender: data.gender,
-      city: data.city.trim(),
-      gym: data.gym.trim(),
-      category: category.id,
-      categoryMeta: meta,
-      paymentRef: data.paymentRef.trim(),
-      paymentStatus: "unverified",
-      receiptFile: storedPath,
-      receiptOriginalName: receipt.name,
-      photoFile: storedPhotoPath,
-      photoOriginalName: photo.name,
-      notes: data.notes || "",
-    });
+    // Create one registration row per selected category, sharing one regId
+    const firstName = data.name.trim();
+    const phone = data.phone;
+    const email = data.email.toLowerCase();
+    const dob = data.dob;
+    const gender = data.gender;
+    const city = data.city.trim();
+    const gym = data.gym.trim();
+    const paymentRef = data.paymentRef.trim();
+    const notes = data.notes || "";
 
-    const saved = await addRegistration(reg);
-    return NextResponse.json({ ok: true, regId: saved.regId });
+    let created: Awaited<ReturnType<typeof addRegistration>> | null = null;
+    for (const catId of catIds) {
+      const cat = CATEGORIES.find((c) => c.id === catId)!;
+      const reg = buildRegistration({
+        name: firstName,
+        phone,
+        email,
+        dob,
+        gender,
+        city,
+        gym,
+        category: catId,
+        categoryMeta: metas[catId],
+        paymentRef,
+        paymentStatus: "unverified",
+        receiptFile: storedPath,
+        receiptOriginalName: receipt.name,
+        photoFile: storedPhotoPath,
+        photoOriginalName: photo.name,
+        notes,
+      });
+      created = await addRegistration(reg);
+    }
+
+    if (!created) return bad("Could not create registration", 500);
+    return NextResponse.json({ ok: true, regId: created.regId });
   } catch (e: unknown) {
     console.error("register error", e);
     let msg = "Server error, please try again";
