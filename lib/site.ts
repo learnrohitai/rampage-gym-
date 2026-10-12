@@ -15,8 +15,8 @@ export const SITE = {
   instagram: "https://instagram.com/rampage_gym",
   registrationOpens: "5 October 2026",
   // ISO date the hero countdown counts down to (YYYY-MM-DD)
-  registrationDeadlineISO: "2026-10-10T23:59:00+05:30",
-  registrationDeadline: "10 October 2026",
+  registrationDeadlineISO: "2026-10-15T23:59:00+05:30",
+  registrationDeadline: "15 October 2026",
   entryFee: 3500,
   upiId: "flex303-3@okhdfcbank",
   payeeName: "Rampage Gym",
@@ -67,7 +67,7 @@ export const SCHEDULE = [
     desc: "Entries open — lock your spot before your weight class fills up.",
   },
   {
-    date: "10 Oct 2026",
+    date: "15 Oct 2026",
     title: "Registration Closes",
     desc: "Last date to submit your entry online with payment.",
   },
